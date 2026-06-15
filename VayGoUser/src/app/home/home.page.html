@@ -1,20 +1,140 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [scrollY]="false">
+  <div class="screen">
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <!-- HEADER -->
+    <div class="header">
+      <img src="assets/VayGoLogoWhite.png" class="header-logo" alt="VayGo" />
+      <div class="header-title">Book a Ride</div>
+    </div>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+    <!-- MAP AREA -->
+    <div class="map-area">
+      <div id="map"></div>
+
+      <div class="map-hint" *ngIf="state === 'selecting' && !drop">
+        Tap on the map to set your drop location
+      </div>
+    </div>
+
+    <!-- VEHICLE SELECTION + BOOK -->
+    <div class="sheet" *ngIf="state === 'selecting'">
+      <div class="sheet-handle"></div>
+
+      <div class="addr-row">
+        <div class="addr-dot pickup-dot"></div>
+        <div class="addr-text">{{ pickup ? pickup.address : 'Getting your location...' }}</div>
+      </div>
+      <div class="addr-row">
+        <div class="addr-dot drop-dot"></div>
+        <div class="addr-text">{{ drop ? drop.address : 'Select drop on map' }}</div>
+      </div>
+
+      <div class="loading-row" *ngIf="loadingOptions">
+        <div class="pulse-dot"></div>
+        <span>Loading vehicle options...</span>
+      </div>
+
+      <div class="vehicle-categories" *ngIf="!loadingOptions && vehicleOptions.length">
+        <div class="vehicle-category" *ngFor="let category of categories">
+          <div class="category-label">{{ category }}</div>
+          <div class="vehicle-list">
+            <div
+              class="vehicle-card"
+              *ngFor="let option of optionsFor(category)"
+              [class.selected]="selectedVehicleType === option.vehicleType"
+              [class.unavailable]="option.availableNearby === 0"
+              (click)="selectVehicle(option.vehicleType)">
+              <div class="vehicle-icon">{{ iconFor(option.vehicleType) }}</div>
+              <div class="vehicle-name">{{ option.vehicleType }}</div>
+              <div class="vehicle-fare">₹{{ option.estimatedFare }}</div>
+              <div class="vehicle-nearby">
+                {{ option.availableNearby > 0 ? option.availableNearby + ' nearby' : 'None nearby' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="book-btn" [disabled]="!canBook" (click)="bookRide()">
+        {{ selectedOption ? 'Book ' + selectedOption.vehicleType + ' • ₹' + selectedOption.estimatedFare : 'Select a vehicle' }}
+      </button>
+    </div>
+
+    <!-- SEARCHING -->
+    <div class="sheet center-sheet" *ngIf="state === 'searching'">
+      <div class="sheet-handle"></div>
+      <div class="searching-anim">
+        <div class="pulse-ring"></div>
+        <div class="vehicle-icon big">{{ iconFor(selectedVehicleType || 'Auto') }}</div>
+      </div>
+      <p class="status-title">Finding your driver</p>
+      <p class="status-sub">{{ statusMessage }}</p>
+      <button class="cancel-link" (click)="cancelRide()">Cancel Ride</button>
+    </div>
+
+    <!-- DRIVER ACCEPTED -->
+    <div class="sheet" *ngIf="state === 'accepted' || state === 'started'">
+      <div class="sheet-handle"></div>
+
+      <div class="status-banner">{{ state === 'started' ? 'Ride in progress' : 'Driver is on the way' }}</div>
+
+      <div class="driver-row">
+        <div class="driver-avatar">{{ (driverInfo?.fullName || 'D')[0] }}</div>
+        <div class="driver-info">
+          <div class="driver-name">{{ driverInfo?.fullName || 'Your driver' }}</div>
+          <div class="driver-vehicle">{{ activeRide?.vehicleType }} • {{ driverInfo?.vehicleNumber || '' }}</div>
+        </div>
+        <a class="call-btn" *ngIf="driverInfo?.phoneNumber" href="tel:{{ driverInfo?.phoneNumber }}">📞</a>
+      </div>
+
+      <div class="trip-row">
+        <div class="addr-row">
+          <div class="addr-dot pickup-dot"></div>
+          <div class="addr-text">{{ activeRide?.pickupAddress || pickup?.address }}</div>
+        </div>
+        <div class="addr-row">
+          <div class="addr-dot drop-dot"></div>
+          <div class="addr-text">{{ activeRide?.dropAddress || drop?.address }}</div>
+        </div>
+      </div>
+
+      <button class="cancel-link" *ngIf="state === 'accepted'" (click)="cancelRide()">Cancel Ride</button>
+    </div>
+
+    <!-- COMPLETED / RATING -->
+    <div class="sheet" *ngIf="state === 'completed'">
+      <div class="sheet-handle"></div>
+      <div class="status-banner success">Ride Completed</div>
+
+      <div class="fare-row">
+        <span>Total Fare</span>
+        <span class="fare-amount">₹{{ activeRide?.finalFare || activeRide?.estimatedFare }}</span>
+      </div>
+
+      <p class="rate-label">Rate your trip with {{ driverInfo?.fullName || 'driver' }}</p>
+      <div class="star-row">
+        <span
+          class="star-pick"
+          *ngFor="let i of [1,2,3,4,5]"
+          [class.filled]="i <= rating"
+          (click)="rating = i">★</span>
+      </div>
+
+      <textarea
+        class="feedback-input"
+        placeholder="Leave feedback (optional)"
+        [(ngModel)]="feedback"></textarea>
+
+      <button class="book-btn" [disabled]="!rating" (click)="submitRating()">Submit & Book Again</button>
+    </div>
+
+    <!-- CANCELLED -->
+    <div class="sheet center-sheet" *ngIf="state === 'cancelled'">
+      <div class="sheet-handle"></div>
+      <div class="status-banner danger">Ride Cancelled</div>
+      <p class="status-sub">{{ statusMessage }}</p>
+      <button class="book-btn" (click)="resetBooking()">Book Another Ride</button>
+    </div>
+
   </div>
 </ion-content>
