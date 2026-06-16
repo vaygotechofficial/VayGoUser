@@ -20,6 +20,7 @@ export class OtpPage implements AfterViewInit {
   timer = 30;
   errorMsg = '';
   mobile = '';
+  private devOtp = '';
   private timerRef: any;
 
   constructor(
@@ -30,11 +31,26 @@ export class OtpPage implements AfterViewInit {
   ) {
     this.route.queryParams.subscribe(params => {
       this.mobile = params['mobile'];
+      this.devOtp = params['devOtp'] || '';
     });
     this.startTimer();
   }
 
-  ngAfterViewInit() {}
+  ngAfterViewInit() {
+    if (this.devOtp) {
+      this.fillOtp(this.devOtp);
+    }
+  }
+
+  private fillOtp(otp: string) {
+    const chars = otp.split('');
+    chars.forEach((c, i) => { this.digits[i] = c; });
+    setTimeout(() => {
+      this.otpInputs?.toArray().forEach((ref, i) => {
+        ref.nativeElement.value = chars[i] || '';
+      });
+    }, 0);
+  }
 
   onInput(event: Event, index: number) {
     const input = event.target as HTMLInputElement;
@@ -112,6 +128,9 @@ export class OtpPage implements AfterViewInit {
     this.otpInputs?.first?.nativeElement.focus();
     this.startTimer();
     this.authService.sendOtp(this.mobile).subscribe({
+      next: (res) => {
+        if (res.devOtp) this.fillOtp(res.devOtp);
+      },
       error: (err: any) => { this.errorMsg = err.error?.message || 'Failed to resend OTP.'; }
     });
   }

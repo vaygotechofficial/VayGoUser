@@ -4,9 +4,13 @@
 
 export const environment = {
   production: false,
-  baseUrl: 'https://vaygotech-afhdbqfde5b0gkh0.centralindia-01.azurewebsites.net/api',
+  baseUrl: 'https://apps.vaygotech.com/api',
   userType: 'USER',
-  googleMapsApiKey: 'AIzaSyDLum8xBKx4Wp3Uetglx8qzE5MA-qmF_qA'
+  googleMapsApiKey: 'AIzaSyDLum8xBKx4Wp3Uetglx8qzE5MA-qmF_qA',
+  defaultMapLat: 13.0827,
+  defaultMapLng: 80.2707,
+  mapZoom: 15,
+  devDummyOtp: '123456'
 };
 
 /*

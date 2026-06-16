@@ -6,6 +6,7 @@ import * as L from 'leaflet';
 import { Subscription } from 'rxjs';
 import { ApiService } from '../services/api';
 import { SignalrService } from '../services/signalr';
+import { environment } from 'src/environments/environment';
 
 interface VehicleOption {
   category: string;
@@ -76,11 +77,11 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initMap() {
-    const defaultCoords: L.LatLngTuple = [13.0827, 80.2707]; // Chennai default
+    const defaultCoords: L.LatLngTuple = [environment.defaultMapLat, environment.defaultMapLng];
 
     this.map = L.map('map', {
       center: defaultCoords,
-      zoom: 15,
+      zoom: environment.mapZoom,
       zoomControl: false,
       attributionControl: false
     });
@@ -92,7 +93,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(pos => {
         const { latitude: lat, longitude: lng } = pos.coords;
-        this.map.setView([lat, lng], 15);
+        this.map.setView([lat, lng], environment.mapZoom);
         this.setPickup(lat, lng);
       });
     }
