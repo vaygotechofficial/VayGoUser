@@ -1,0 +1,44 @@
+<ion-content [scrollY]="true">
+
+  <div class="top-logo">
+    <img src="assets/VayGoLogoWhite.png" alt="VayGo" />
+  </div>
+
+  <div class="card">
+    <h2>Complete Profile</h2>
+    <p>Please take a profile photo to complete your registration</p>
+
+    <div class="stepper">
+      <div class="step completed">✓</div>
+      <div class="line done"></div>
+      <div class="step active">2</div>
+    </div>
+    <div class="step-label">Step 2 of 2 — Profile Photo</div>
+
+    <!-- PROFILE PHOTO (Camera) -->
+    <div class="upload-section">
+      <p class="upload-label">Profile Photo <span class="required">*</span></p>
+      <div class="camera-box" (click)="takePhoto()">
+        <img *ngIf="photoPreview" [src]="photoPreview" class="preview-img" />
+        <div *ngIf="!photoPreview" class="camera-placeholder">
+          <span class="camera-icon">📷</span>
+          <span class="camera-text">Tap to open camera</span>
+          <span class="camera-hint">Take a clear front-facing photo</span>
+        </div>
+      </div>
+      <ion-button *ngIf="photoPreview" expand="block" class="retake-btn" (click)="takePhoto()">
+        Retake Photo
+      </ion-button>
+    </div>
+
+    <ion-text color="danger" *ngIf="errorMsg">
+      <p class="err-msg">{{ errorMsg }}</p>
+    </ion-text>
+
+    <ion-button expand="block" class="btn" (click)="onSubmit()" [disabled]="loading">
+      {{ loading ? 'Finalizing...' : 'Complete Registration' }}
+    </ion-button>
+
+  </div>
+
+</ion-content>

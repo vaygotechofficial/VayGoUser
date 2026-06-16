@@ -1,0 +1,42 @@
+<ion-content>
+  <div class="top-logo">
+    <img src="assets/VayGoLogoWhite.png" alt="VayGo" />
+  </div>
+
+  <div class="card">
+    <h2>Complete Your Profile</h2>
+    <p>Please enter your details to continue</p>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+      <ion-item fill="outline">
+        <ion-input
+          type="text"
+          formControlName="fullName"
+          placeholder="Full Name">
+        </ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="registerForm.get('fullName')?.touched && registerForm.get('fullName')?.invalid">
+        <p class="error-text">Please enter a valid name (min 3 characters)</p>
+      </ion-text>
+
+      <ion-item fill="outline" class="ion-margin-top">
+        <ion-input
+          type="email"
+          formControlName="email"
+          placeholder="Email Address (Optional)">
+        </ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid">
+        <p class="error-text">Please enter a valid email address</p>
+      </ion-text>
+
+      <ion-text color="danger" *ngIf="errorMessage">
+        <p class="ion-text-center">{{ errorMessage }}</p>
+      </ion-text>
+
+      <ion-button expand="block" class="btn ion-margin-top" type="submit" [disabled]="registerForm.invalid">
+        Get Started
+      </ion-button>
+    </form>
+  </div>
+</ion-content>

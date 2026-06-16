@@ -1,0 +1,104 @@
+ion-content {
+  --background: linear-gradient(180deg, #3b0a18, #1a050b);
+}
+
+.top-logo {
+  text-align: center;
+  padding-top: 60px;
+}
+
+.top-logo img {
+  width: 50%;
+  max-width: 160px;
+}
+
+.card {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: #ffffff;
+  border-top-left-radius: 35px;
+  border-top-right-radius: 35px;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.card h2 {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+.card p {
+  font-size: 13px;
+  color: #666;
+  margin: 4px 0;
+}
+
+.hint {
+  font-size: 12px;
+  color: #999;
+}
+
+.otp-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 24px 0 8px;
+}
+
+.otp-box {
+  width: 46px;
+  height: 52px;
+  text-align: center;
+  border: 1.5px solid #ddd;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+  background: #f9f9f9;
+  outline: none;
+  -moz-appearance: textfield;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.otp-box:focus {
+  border-color: #8b1c2c;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(139, 28, 44, 0.15);
+}
+
+.otp-box::-webkit-outer-spin-button,
+.otp-box::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.btn {
+  --background: linear-gradient(135deg, #8b1c2c, #3b0a18);
+  --color: #fff;
+  --border-radius: 12px;
+  margin-top: 20px;
+}
+
+.err-msg {
+  font-size: 13px;
+  margin: 10px 0 0;
+  color: var(--ion-color-danger);
+}
+
+.timer-row {
+  margin-top: 16px;
+  min-height: 44px;
+}
+
+.timer-text {
+  font-size: 13px;
+  color: #999;
+}
+
+.resend-btn {
+  --background: linear-gradient(135deg, #8b1c2c, #3b0a18);
+  --color: #fff;
+  --border-radius: 12px;
+}

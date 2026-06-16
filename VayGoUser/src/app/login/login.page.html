@@ -1,0 +1,46 @@
+<ion-content>
+
+  <div class="top-logo">
+    <img src="assets/VayGoLogoWhite.png" alt="VayGo" />
+  </div>
+
+  <div class="card">
+
+    <h2>Welcome</h2>
+    <p>Login with your mobile number</p>
+
+    <form [formGroup]="loginForm" (ngSubmit)="login()">
+
+      <ion-item fill="outline">
+        <ion-input
+          type="tel"
+          inputmode="numeric"
+          maxlength="10"
+          formControlName="mobile"
+          placeholder="Enter mobile number">
+        </ion-input>
+      </ion-item>
+
+      <ion-text color="danger"
+        *ngIf="loginForm.get('mobile')?.touched && loginForm.get('mobile')?.invalid">
+        <p *ngIf="loginForm.get('mobile')?.errors?.['required']">Mobile number is required</p>
+        <p *ngIf="loginForm.get('mobile')?.errors?.['pattern']">Enter valid 10-digit number</p>
+      </ion-text>
+
+      <ion-text color="danger" *ngIf="errormessage">
+        <p class="ion-text-center">{{ errormessage }}</p>
+      </ion-text>
+
+      <ion-button expand="block" class="btn" type="submit">
+        Login
+      </ion-button>
+
+    </form>
+
+    <ion-button expand="block" class="btn-link" (click)="goToRegister()">
+      Create New Account
+    </ion-button>
+
+  </div>
+
+</ion-content>
