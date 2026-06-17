@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent } from '@ionic/angular/standalone';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
+import { Geolocation } from '@capacitor/geolocation';
 import { Subscription } from 'rxjs';
 import { ApiService } from '../services/api';
 import { SignalrService, getCurrentUserId } from '../services/signalr';
@@ -131,22 +132,19 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.initGoogleMaps();
   }
 
-  private getInitialLocation(): Promise<{ lat: number; lng: number } | null> {
-    return new Promise(resolve => {
-      if (!navigator.geolocation) {
+  private async getInitialLocation(): Promise<{ lat: number; lng: number } | null> {
+    try {
+      const perm = await Geolocation.requestPermissions();
+      if (perm.location === 'denied') {
         this.ngZone.run(() => { this.locationDenied = true; });
-        resolve(null);
-        return;
+        return null;
       }
-      navigator.geolocation.getCurrentPosition(
-        pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => {
-          this.ngZone.run(() => { this.locationDenied = true; });
-          resolve(null);
-        },
-        { timeout: 10000, maximumAge: 0, enableHighAccuracy: true }
-      );
-    });
+      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+      return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    } catch {
+      this.ngZone.run(() => { this.locationDenied = true; });
+      return null;
+    }
   }
 
   private restoreActiveBooking(): boolean {
