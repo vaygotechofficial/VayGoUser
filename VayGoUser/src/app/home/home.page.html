@@ -1,6 +1,15 @@
 <ion-content [scrollY]="false">
   <div class="screen">
 
+    <!-- LOCATION REQUIRED -->
+    <div class="location-gate" *ngIf="locationDenied">
+      <div class="location-gate-icon">📍</div>
+      <h3 class="location-gate-title">Location Required</h3>
+      <p class="location-gate-msg">VayGo needs your GPS location to set your pickup point and find nearby riders.</p>
+      <p class="location-gate-hint">Enable location in your browser or device settings, then tap Retry.</p>
+      <button class="location-gate-btn" (click)="retryLocation()">Retry</button>
+    </div>
+
     <!-- FULL PAGE MAP -->
     <div class="map-area">
       <div id="map"></div>

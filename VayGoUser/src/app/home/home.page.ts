@@ -57,6 +57,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
   rating = 0;
   feedback = '';
+  locationDenied = false;
 
   private gmap!: google.maps.Map;
   private pickupMarker?: google.maps.Marker;
@@ -96,6 +97,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.geocoder = new google.maps.Geocoder();
 
     const center = await this.getInitialLocation();
+    if (!center) return;
 
     this.gmap = new google.maps.Map(document.getElementById('map') as HTMLElement, {
       center,
@@ -109,31 +111,85 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
     this.setupAutocomplete();
 
-    this.geocoder.geocode({ location: center }, (results, status) => {
-      this.ngZone.run(() => {
-        const address = status === 'OK' && results?.[0]
-          ? results[0].formatted_address
-          : `${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}`;
-        this.setPickup(center.lat, center.lng, address);
-        if (this.pickupInputRef?.nativeElement) {
-          this.pickupInputRef.nativeElement.value = address;
-        }
+    if (!this.restoreActiveBooking()) {
+      this.geocoder.geocode({ location: center }, (results, status) => {
+        this.ngZone.run(() => {
+          const address = status === 'OK' && results?.[0]
+            ? results[0].formatted_address
+            : `${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}`;
+          this.setPickup(center.lat, center.lng, address);
+          if (this.pickupInputRef?.nativeElement) {
+            this.pickupInputRef.nativeElement.value = address;
+          }
+        });
       });
-    });
+    }
   }
 
-  private getInitialLocation(): Promise<{ lat: number; lng: number }> {
+  retryLocation() {
+    this.locationDenied = false;
+    this.initGoogleMaps();
+  }
+
+  private getInitialLocation(): Promise<{ lat: number; lng: number } | null> {
     return new Promise(resolve => {
       if (!navigator.geolocation) {
-        resolve({ lat: 17.4256, lng: 78.4512 });
+        this.ngZone.run(() => { this.locationDenied = true; });
+        resolve(null);
         return;
       }
       navigator.geolocation.getCurrentPosition(
         pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        ()  => resolve({ lat: 17.4256, lng: 78.4512 }),
-        { timeout: 8000, maximumAge: 60000 }
+        () => {
+          this.ngZone.run(() => { this.locationDenied = true; });
+          resolve(null);
+        },
+        { timeout: 10000, maximumAge: 0, enableHighAccuracy: true }
       );
     });
+  }
+
+  private restoreActiveBooking(): boolean {
+    const saved = localStorage.getItem('userActiveBooking');
+    if (!saved) return false;
+    try {
+      const d = JSON.parse(saved);
+      this.activeRide = d.activeRide;
+      this.driverInfo = d.driverInfo;
+      this.pickup = d.pickup;
+      this.drop = d.drop;
+      this.selectedVehicleType = d.selectedVehicleType;
+      this.state = d.state;
+      this.statusMessage = d.statusMessage || '';
+      if (this.pickup) {
+        this.setPickup(this.pickup.lat, this.pickup.lng, this.pickup.address);
+        if (this.pickupInputRef?.nativeElement) {
+          this.pickupInputRef.nativeElement.value = this.pickup.address;
+        }
+      }
+      if (this.drop) this.setDrop(this.drop.lat, this.drop.lng, this.drop.address);
+      if (this.state === 'accepted' || this.state === 'started') this.drawRoute();
+      return true;
+    } catch {
+      localStorage.removeItem('userActiveBooking');
+      return false;
+    }
+  }
+
+  private saveActiveBooking() {
+    localStorage.setItem('userActiveBooking', JSON.stringify({
+      activeRide: this.activeRide,
+      driverInfo: this.driverInfo,
+      pickup: this.pickup,
+      drop: this.drop,
+      selectedVehicleType: this.selectedVehicleType,
+      state: this.state,
+      statusMessage: this.statusMessage
+    }));
+  }
+
+  private clearActiveBooking() {
+    localStorage.removeItem('userActiveBooking');
   }
 
   private setupAutocomplete() {
@@ -295,6 +351,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
           this.statusMessage = 'No riders available at the moment. Please try again later.';
         } else {
           this.statusMessage = 'Rider found! Waiting for them to accept…';
+          this.saveActiveBooking();
         }
       },
       error: (err) => {
@@ -324,6 +381,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   resetBooking() {
+    this.clearActiveBooking();
     this.state = 'address';
     this.activeRide = null;
     this.driverInfo = null;
@@ -351,6 +409,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.state = 'accepted';
     this.statusMessage = `${data.driver?.fullName || 'A driver'} is on the way!`;
     this.drawRoute();
+    this.saveActiveBooking();
   }
 
   private onRideStarted(data: any) {
@@ -358,6 +417,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.activeRide.rideStatus = data.rideStatus;
     this.state = 'started';
     this.statusMessage = 'Your ride has started.';
+    this.saveActiveBooking();
   }
 
   private onRideCompleted(data: any) {
@@ -366,12 +426,14 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.activeRide.finalFare = data.finalFare;
     this.state = 'completed';
     this.statusMessage = 'Ride completed. Thanks for riding with VayGo!';
+    this.saveActiveBooking();
   }
 
   private onRideCancelled(data: any) {
     if (!this.activeRide || data?.rideId !== this.activeRide.rideId) return;
     this.state = 'cancelled';
     this.statusMessage = data?.reason || 'Ride was cancelled.';
+    this.clearActiveBooking();
   }
 
   private onDriverLocationUpdate(data: any) {
