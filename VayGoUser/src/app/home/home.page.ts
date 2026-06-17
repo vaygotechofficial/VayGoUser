@@ -1,11 +1,11 @@
-import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent } from '@ionic/angular/standalone';
-import * as L from 'leaflet';
+import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { Subscription } from 'rxjs';
 import { ApiService } from '../services/api';
-import { SignalrService } from '../services/signalr';
+import { SignalrService, getCurrentUserId } from '../services/signalr';
 import { environment } from 'src/environments/environment';
 
 interface VehicleOption {
@@ -13,9 +13,10 @@ interface VehicleOption {
   vehicleType: string;
   estimatedFare: number;
   availableNearby: number;
+  etaMinutes: number;
 }
 
-type BookingState = 'selecting' | 'searching' | 'accepted' | 'started' | 'completed' | 'cancelled';
+type BookingState = 'address' | 'selecting' | 'searching' | 'noRiders' | 'accepted' | 'started' | 'completed' | 'cancelled';
 
 const VEHICLE_ICONS: Record<string, string> = {
   'Bike EV': '⚡',
@@ -39,6 +40,9 @@ const VEHICLE_ICONS: Record<string, string> = {
 export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   readonly categories = ['Bike', 'Auto', 'Car'];
 
+  @ViewChild('pickupInput') pickupInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('dropInput') dropInputRef!: ElementRef<HTMLInputElement>;
+
   pickup: { lat: number; lng: number; address: string } | null = null;
   drop: { lat: number; lng: number; address: string } | null = null;
 
@@ -46,7 +50,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   selectedVehicleType: string | null = null;
   loadingOptions = false;
 
-  state: BookingState = 'selecting';
+  state: BookingState = 'address';
   activeRide: any = null;
   driverInfo: any = null;
   statusMessage = '';
@@ -54,89 +58,180 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   rating = 0;
   feedback = '';
 
-  private map!: L.Map;
-  private pickupMarker?: L.Marker;
-  private dropMarker?: L.Marker;
-  private driverMarker?: L.Marker;
+  private gmap!: google.maps.Map;
+  private pickupMarker?: google.maps.Marker;
+  private dropMarker?: google.maps.Marker;
+  private driverMarker?: google.maps.Marker;
+  private directionsRenderer?: google.maps.DirectionsRenderer;
+  private pickupAutocomplete?: google.maps.places.Autocomplete;
+  private dropAutocomplete?: google.maps.places.Autocomplete;
+  private geocoder?: google.maps.Geocoder;
+  private googleReady = false;
   private subs: Subscription[] = [];
 
-  constructor(private api: ApiService, private signalr: SignalrService) {}
+  constructor(
+    private api: ApiService,
+    private signalr: SignalrService,
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit() {
     this.signalr.connect();
-
-    this.subs.push(this.signalr.rideAccepted$.subscribe(data => this.onRideAccepted(data)));
-    this.subs.push(this.signalr.rideStarted$.subscribe(data => this.onRideStarted(data)));
-    this.subs.push(this.signalr.rideCompleted$.subscribe(data => this.onRideCompleted(data)));
-    this.subs.push(this.signalr.rideCancelled$.subscribe(data => this.onRideCancelled(data)));
-    this.subs.push(this.signalr.driverLocationUpdate$.subscribe(data => this.onDriverLocationUpdate(data)));
+    this.subs.push(this.signalr.rideAccepted$.subscribe(d => this.onRideAccepted(d)));
+    this.subs.push(this.signalr.rideStarted$.subscribe(d => this.onRideStarted(d)));
+    this.subs.push(this.signalr.rideCompleted$.subscribe(d => this.onRideCompleted(d)));
+    this.subs.push(this.signalr.rideCancelled$.subscribe(d => this.onRideCancelled(d)));
+    this.subs.push(this.signalr.driverLocationUpdate$.subscribe(d => this.onDriverLocationUpdate(d)));
   }
 
   ngAfterViewInit() {
-    setTimeout(() => this.initMap(), 300);
+    setTimeout(() => this.initGoogleMaps(), 300);
   }
 
-  private initMap() {
-    const defaultCoords: L.LatLngTuple = [environment.defaultMapLat, environment.defaultMapLng];
+  private async initGoogleMaps() {
+    setOptions({ key: environment.googleMapsApiKey, v: 'weekly' });
+    await importLibrary('maps');
+    await importLibrary('places');
+    this.googleReady = true;
+    this.geocoder = new google.maps.Geocoder();
 
-    this.map = L.map('map', {
-      center: defaultCoords,
+    const center = await this.getInitialLocation();
+
+    this.gmap = new google.maps.Map(document.getElementById('map') as HTMLElement, {
+      center,
       zoom: environment.mapZoom,
-      zoomControl: false,
-      attributionControl: false
+      disableDefaultUI: true,
+      gestureHandling: 'greedy',
+      styles: [
+        { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] }
+      ]
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
-    }).addTo(this.map);
+    this.setupAutocomplete();
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        this.map.setView([lat, lng], environment.mapZoom);
-        this.setPickup(lat, lng);
+    this.geocoder.geocode({ location: center }, (results, status) => {
+      this.ngZone.run(() => {
+        const address = status === 'OK' && results?.[0]
+          ? results[0].formatted_address
+          : `${center.lat.toFixed(5)}, ${center.lng.toFixed(5)}`;
+        this.setPickup(center.lat, center.lng, address);
+        if (this.pickupInputRef?.nativeElement) {
+          this.pickupInputRef.nativeElement.value = address;
+        }
       });
-    }
-
-    this.map.on('click', (e: L.LeafletMouseEvent) => {
-      if (this.state !== 'selecting') return;
-      this.setDrop(e.latlng.lat, e.latlng.lng);
     });
   }
 
-  private pickupIcon() {
-    return L.icon({
-      iconUrl: 'assets/VayGoIcon.png',
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
-      popupAnchor: [0, -40]
+  private getInitialLocation(): Promise<{ lat: number; lng: number }> {
+    return new Promise(resolve => {
+      if (!navigator.geolocation) {
+        resolve({ lat: 17.4256, lng: 78.4512 });
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        ()  => resolve({ lat: 17.4256, lng: 78.4512 }),
+        { timeout: 8000, maximumAge: 60000 }
+      );
     });
   }
 
-  private setPickup(lat: number, lng: number) {
-    this.pickup = { lat, lng, address: `Pickup (${lat.toFixed(5)}, ${lng.toFixed(5)})` };
+  private setupAutocomplete() {
+    if (!this.pickupInputRef?.nativeElement || !this.dropInputRef?.nativeElement) return;
+
+    const opts: google.maps.places.AutocompleteOptions = {
+      componentRestrictions: { country: 'in' },
+      fields: ['geometry', 'formatted_address', 'name']
+    };
+
+    this.pickupAutocomplete = new google.maps.places.Autocomplete(
+      this.pickupInputRef.nativeElement, opts
+    );
+    this.pickupAutocomplete.addListener('place_changed', () => {
+      this.ngZone.run(() => {
+        const place = this.pickupAutocomplete!.getPlace();
+        if (place.geometry?.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          const address = place.formatted_address || place.name || '';
+          this.setPickup(lat, lng, address);
+          this.gmap.setCenter({ lat, lng });
+          this.gmap.setZoom(environment.mapZoom);
+        }
+      });
+    });
+
+    this.dropAutocomplete = new google.maps.places.Autocomplete(
+      this.dropInputRef.nativeElement, opts
+    );
+    this.dropAutocomplete.addListener('place_changed', () => {
+      this.ngZone.run(() => {
+        const place = this.dropAutocomplete!.getPlace();
+        if (place.geometry?.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          const address = place.formatted_address || place.name || '';
+          this.setDrop(lat, lng, address);
+        }
+      });
+    });
+  }
+
+  private setPickup(lat: number, lng: number, address: string) {
+    this.pickup = { lat, lng, address };
 
     if (this.pickupMarker) {
-      this.pickupMarker.setLatLng([lat, lng]);
+      this.pickupMarker.setPosition({ lat, lng });
     } else {
-      this.pickupMarker = L.marker([lat, lng], { icon: this.pickupIcon() })
-        .addTo(this.map)
-        .bindPopup('Pickup');
+      this.pickupMarker = new google.maps.Marker({
+        position: { lat, lng },
+        map: this.gmap,
+        icon: {
+          url: 'assets/VayGoIcon.png',
+          scaledSize: new google.maps.Size(40, 40),
+          anchor: new google.maps.Point(20, 40)
+        },
+        title: 'Pickup'
+      });
     }
-
-    this.fetchVehicleOptions();
   }
 
-  private setDrop(lat: number, lng: number) {
-    this.drop = { lat, lng, address: `Drop (${lat.toFixed(5)}, ${lng.toFixed(5)})` };
+  private setDrop(lat: number, lng: number, address: string) {
+    this.drop = { lat, lng, address };
 
     if (this.dropMarker) {
-      this.dropMarker.setLatLng([lat, lng]);
+      this.dropMarker.setPosition({ lat, lng });
     } else {
-      this.dropMarker = L.marker([lat, lng]).addTo(this.map).bindPopup('Drop').openPopup();
+      this.dropMarker = new google.maps.Marker({
+        position: { lat, lng },
+        map: this.gmap,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: '#8b1c2c',
+          fillOpacity: 1,
+          strokeColor: '#fff',
+          strokeWeight: 3
+        },
+        title: 'Drop'
+      });
     }
+  }
+
+  confirmLocations() {
+    if (!this.pickup || !this.drop) return;
+
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend({ lat: this.pickup.lat, lng: this.pickup.lng });
+    bounds.extend({ lat: this.drop.lat, lng: this.drop.lng });
+    this.gmap.fitBounds(bounds, { top: 80, bottom: 360, left: 40, right: 40 });
 
     this.fetchVehicleOptions();
+    this.state = 'selecting';
+  }
+
+  editLocations() {
+    this.state = 'address';
   }
 
   private fetchVehicleOptions() {
@@ -153,9 +248,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
         this.vehicleOptions = res || [];
         this.loadingOptions = false;
       },
-      error: () => {
-        this.loadingOptions = false;
-      }
+      error: () => { this.loadingOptions = false; }
     });
   }
 
@@ -182,32 +275,40 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   bookRide() {
     if (!this.canBook || !this.pickup || !this.drop || !this.selectedVehicleType) return;
 
-    const body = {
+    this.state = 'searching';
+    this.statusMessage = 'Searching for a nearby rider…';
+
+    this.api.post('ride/request', {
       pickupLat: this.pickup.lat,
       pickupLong: this.pickup.lng,
       dropLat: this.drop.lat,
       dropLong: this.drop.lng,
       pickupAddress: this.pickup.address,
       dropAddress: this.drop.address,
-      vehicleType: this.selectedVehicleType
-    };
-
-    this.api.post('ride/request', body).subscribe({
+      vehicleType: this.selectedVehicleType,
+      userId: getCurrentUserId()
+    }).subscribe({
       next: (res) => {
         this.activeRide = res?.data;
-        this.state = 'searching';
-        this.statusMessage = this.activeRide?.driverAssigned
-          ? 'Driver found! Waiting for them to accept...'
-          : 'Searching for nearby drivers...';
+        if (!res?.data?.driverAssigned) {
+          this.state = 'noRiders';
+          this.statusMessage = 'No riders available at the moment. Please try again later.';
+        } else {
+          this.statusMessage = 'Rider found! Waiting for them to accept…';
+        }
       },
       error: (err) => {
+        this.state = 'address';
         this.statusMessage = err?.error?.message || 'Could not request ride. Please try again.';
       }
     });
   }
 
   cancelRide() {
-    if (!this.activeRide) return;
+    if (!this.activeRide) {
+      this.resetBooking();
+      return;
+    }
     this.api.post(`ride/cancel/${this.activeRide.rideId}`, {}).subscribe({
       next: () => this.resetBooking(),
       error: () => this.resetBooking()
@@ -223,7 +324,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   resetBooking() {
-    this.state = 'selecting';
+    this.state = 'address';
     this.activeRide = null;
     this.driverInfo = null;
     this.statusMessage = '';
@@ -231,26 +332,25 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.rating = 0;
     this.feedback = '';
     this.vehicleOptions = [];
-
-    if (this.dropMarker) {
-      this.map.removeLayer(this.dropMarker);
-      this.dropMarker = undefined;
-    }
-    if (this.driverMarker) {
-      this.map.removeLayer(this.driverMarker);
-      this.driverMarker = undefined;
-    }
     this.drop = null;
 
-    if (this.pickup) this.fetchVehicleOptions();
+    this.dropMarker?.setMap(null);
+    this.dropMarker = undefined;
+    this.driverMarker?.setMap(null);
+    this.driverMarker = undefined;
+    this.clearRoute();
+
+    if (this.dropInputRef?.nativeElement) this.dropInputRef.nativeElement.value = '';
+    if (this.pickup) this.gmap?.setCenter({ lat: this.pickup.lat, lng: this.pickup.lng });
   }
 
   private onRideAccepted(data: any) {
     if (!this.activeRide || data?.rideId !== this.activeRide.rideId) return;
-    this.activeRide.rideStatus = data.rideStatus;
+    this.activeRide = { ...this.activeRide, ...data };
     this.driverInfo = data.driver;
     this.state = 'accepted';
     this.statusMessage = `${data.driver?.fullName || 'A driver'} is on the way!`;
+    this.drawRoute();
   }
 
   private onRideStarted(data: any) {
@@ -275,24 +375,53 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private onDriverLocationUpdate(data: any) {
-    if (!this.activeRide || data?.rideId !== this.activeRide.rideId) return;
+    if (!this.googleReady || !this.activeRide || data?.rideId !== this.activeRide.rideId) return;
 
-    const icon = L.icon({
-      iconUrl: 'assets/VayGoIcon.png',
-      iconSize: [36, 36],
-      iconAnchor: [18, 36]
-    });
-
+    const pos = { lat: data.lat, lng: data.lng };
     if (this.driverMarker) {
-      this.driverMarker.setLatLng([data.lat, data.lng]);
+      this.driverMarker.setPosition(pos);
     } else {
-      this.driverMarker = L.marker([data.lat, data.lng], { icon }).addTo(this.map).bindPopup('Your driver');
+      this.driverMarker = new google.maps.Marker({
+        position: pos,
+        map: this.gmap,
+        icon: {
+          url: 'assets/VayGoIcon.png',
+          scaledSize: new google.maps.Size(36, 36),
+          anchor: new google.maps.Point(18, 36)
+        },
+        title: 'Your driver'
+      });
     }
+  }
+
+  private drawRoute() {
+    if (!this.googleReady || !this.gmap || !this.pickup || !this.drop) return;
+    this.clearRoute();
+    const ds = new google.maps.DirectionsService();
+    this.directionsRenderer = new google.maps.DirectionsRenderer({
+      map: this.gmap,
+      suppressMarkers: true,
+      polylineOptions: { strokeColor: '#8b1c2c', strokeWeight: 5, strokeOpacity: 0.8 }
+    });
+    ds.route({
+      origin: { lat: this.pickup.lat, lng: this.pickup.lng },
+      destination: { lat: this.drop.lat, lng: this.drop.lng },
+      travelMode: google.maps.TravelMode.DRIVING
+    }, (result, status) => {
+      if (status === 'OK') this.directionsRenderer!.setDirections(result);
+    });
+  }
+
+  private clearRoute() {
+    this.directionsRenderer?.setMap(null);
+    this.directionsRenderer = undefined;
   }
 
   ngOnDestroy() {
     this.subs.forEach(s => s.unsubscribe());
     this.signalr.disconnect();
-    if (this.map) this.map.remove();
+    this.pickupAutocomplete?.unbindAll();
+    this.dropAutocomplete?.unbindAll();
+    this.clearRoute();
   }
 }

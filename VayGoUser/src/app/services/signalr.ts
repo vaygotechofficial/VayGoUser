@@ -23,12 +23,22 @@ export class SignalrService {
 
   connect(): void {
     if (this.hubConnection) return;
+    this.startConnection();
+  }
 
-    const hubUrl = environment.baseUrl.replace(/\/api\/?$/, '') + '/hubs/notifications';
+  reconnect(): void {
+    this.disconnect();
+    this.startConnection();
+  }
+
+  private startConnection(): void {
+    const hubUrl = environment.baseUrl.replace(/\/+$/, '') + '/hubs/notifications';
     const userId = getCurrentUserId();
 
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${hubUrl}?userId=${userId}`)
+      .withUrl(`${hubUrl}?userId=${userId}`, {
+        transport: signalR.HttpTransportType.LongPolling
+      })
       .withAutomaticReconnect()
       .build();
 

@@ -1,19 +1,38 @@
 <ion-content [scrollY]="false">
   <div class="screen">
 
+    <!-- FULL PAGE MAP -->
+    <div class="map-area">
+      <div id="map"></div>
+    </div>
+
     <!-- HEADER -->
     <div class="header">
       <img src="assets/VayGoLogoWhite.png" class="header-logo" alt="VayGo" />
       <div class="header-title">Book a Ride</div>
     </div>
 
-    <!-- MAP AREA -->
-    <div class="map-area">
-      <div id="map"></div>
-
-      <div class="map-hint" *ngIf="state === 'selecting' && !drop">
-        Tap on the map to set your drop location
+    <!-- PICKUP / DROP SEARCH — always in DOM so Autocomplete refs stay valid -->
+    <div class="search-panel" [hidden]="state !== 'address'">
+      <div class="search-row">
+        <div class="addr-dot pickup-dot"></div>
+        <input
+          #pickupInput
+          class="search-input"
+          placeholder="Pickup location"
+          autocomplete="off" />
       </div>
+      <div class="search-divider"></div>
+      <div class="search-row">
+        <div class="addr-dot drop-dot"></div>
+        <input
+          #dropInput
+          class="search-input"
+          placeholder="Where to?"
+          autocomplete="off" />
+      </div>
+
+      <button class="book-btn" [disabled]="!pickup || !drop" (click)="confirmLocations()">Find Rides</button>
     </div>
 
     <!-- VEHICLE SELECTION + BOOK -->
@@ -22,12 +41,13 @@
 
       <div class="addr-row">
         <div class="addr-dot pickup-dot"></div>
-        <div class="addr-text">{{ pickup ? pickup.address : 'Getting your location...' }}</div>
+        <div class="addr-text">{{ pickup?.address }}</div>
       </div>
       <div class="addr-row">
         <div class="addr-dot drop-dot"></div>
-        <div class="addr-text">{{ drop ? drop.address : 'Select drop on map' }}</div>
+        <div class="addr-text">{{ drop?.address }}</div>
       </div>
+      <button class="edit-link" (click)="editLocations()">Edit locations</button>
 
       <div class="loading-row" *ngIf="loadingOptions">
         <div class="pulse-dot"></div>
@@ -48,7 +68,10 @@
               <div class="vehicle-name">{{ option.vehicleType }}</div>
               <div class="vehicle-fare">₹{{ option.estimatedFare }}</div>
               <div class="vehicle-nearby">
-                {{ option.availableNearby > 0 ? option.availableNearby + ' nearby' : 'None nearby' }}
+                <ng-container *ngIf="option.availableNearby > 0">
+                  {{ option.availableNearby }} nearby · {{ option.etaMinutes }} min
+                </ng-container>
+                <ng-container *ngIf="option.availableNearby === 0">None nearby</ng-container>
               </div>
             </div>
           </div>
@@ -67,16 +90,31 @@
         <div class="pulse-ring"></div>
         <div class="vehicle-icon big">{{ iconFor(selectedVehicleType || 'Auto') }}</div>
       </div>
-      <p class="status-title">Finding your driver</p>
+      <p class="status-title">{{ activeRide ? 'Rider found!' : 'Searching for rider…' }}</p>
       <p class="status-sub">{{ statusMessage }}</p>
-      <button class="cancel-link" (click)="cancelRide()">Cancel Ride</button>
+      <button class="cancel-link" (click)="cancelRide()">Cancel</button>
     </div>
 
-    <!-- DRIVER ACCEPTED -->
+    <!-- NO RIDERS AVAILABLE -->
+    <div class="sheet center-sheet" *ngIf="state === 'noRiders'">
+      <div class="sheet-handle"></div>
+      <div class="no-riders-icon">🚫</div>
+      <p class="status-title">No Riders Available</p>
+      <p class="status-sub">{{ statusMessage }}</p>
+      <button class="book-btn" (click)="cancelRide()">Try Again</button>
+    </div>
+
+    <!-- DRIVER ACCEPTED / STARTED -->
     <div class="sheet" *ngIf="state === 'accepted' || state === 'started'">
       <div class="sheet-handle"></div>
 
       <div class="status-banner">{{ state === 'started' ? 'Ride in progress' : 'Driver is on the way' }}</div>
+
+      <!-- OTP code — passenger shows this to the rider to start the trip -->
+      <div class="otp-box">
+        <p class="otp-box-label">Show this code to your rider</p>
+        <div class="otp-digits">{{ activeRide?.rideOtp || activeRide?.rideNumber?.slice(-4) }}</div>
+      </div>
 
       <div class="driver-row">
         <div class="driver-avatar">{{ (driverInfo?.fullName || 'D')[0] }}</div>
