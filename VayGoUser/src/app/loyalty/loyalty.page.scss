@@ -1,0 +1,46 @@
+ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
+
+.page { min-height: 100%; padding-bottom: 24px; }
+.page-header { display: flex; align-items: center; gap: 8px; padding: 48px 16px 16px; }
+
+.back-btn {
+  background: rgba(255,255,255,0.12); border: none; color: #fff;
+  width: 36px; height: 36px; border-radius: 50%; font-size: 26px; line-height: 1; cursor: pointer;
+}
+
+.page-title { font-size: 20px; font-weight: 700; color: #fff; }
+.page-body { padding: 0 14px; }
+
+.loading-row { display: flex; align-items: center; gap: 10px; padding: 20px 4px; color: rgba(255,255,255,0.75); font-size: 13px; }
+.pulse-dot { width: 12px; height: 12px; border-radius: 50%; background: #fff; animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } }
+
+.hero-card {
+  background: #fff; border-radius: 18px; padding: 24px; text-align: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25); margin-bottom: 16px;
+}
+
+.hero-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.8px; }
+.hero-balance { font-size: 40px; font-weight: 800; color: #8b1c2c; margin: 6px 0 14px; }
+.pts { font-size: 18px; color: #888; font-weight: 600; }
+
+.redeem-btn {
+  background: linear-gradient(135deg, #8b1c2c, #3b0a18); color: #fff;
+  border: none; border-radius: 12px; padding: 12px 28px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.redeem-btn:disabled { opacity: 0.5; }
+
+.section-title { font-size: 13px; font-weight: 700; color: #fff; margin: 8px 4px 10px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+.empty-state { text-align: center; color: rgba(255,255,255,0.7); font-size: 14px; padding: 20px; }
+
+.history-card {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #fff; border-radius: 14px; padding: 12px 14px;
+  margin-bottom: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+
+.history-reason { font-size: 14px; font-weight: 600; color: #1a050b; }
+.history-date { font-size: 11px; color: #999; margin-top: 2px; }
+.history-points { font-size: 16px; font-weight: 800; color: #2e7d32; }
+.history-points.negative { color: #c62828; }

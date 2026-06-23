@@ -1,0 +1,56 @@
+<ion-content>
+  <div class="page">
+    <div class="page-header">
+      <button class="back-btn" (click)="back()">‹</button>
+      <div class="page-title">Safety & Support</div>
+    </div>
+
+    <div class="page-body">
+      <!-- SOS -->
+      <button class="sos-btn" (click)="triggerSos()">
+        <span class="sos-icon">🆘</span>
+        <span>Emergency SOS</span>
+      </button>
+      <p class="sos-hint" *ngIf="activeRideId">Linked to your active ride.</p>
+      <p class="sos-hint" *ngIf="!activeRideId">No active ride — SOS will still share your location.</p>
+
+      <!-- Report / Lost & found form -->
+      <div class="card">
+        <div class="tabs">
+          <button class="tab" [class.active]="category === 'ReportIssue'" (click)="category = 'ReportIssue'">Report Issue</button>
+          <button class="tab" [class.active]="category === 'LostAndFound'" (click)="category = 'LostAndFound'">Lost &amp; Found</button>
+        </div>
+
+        <input class="field" placeholder="Subject" [(ngModel)]="subject" />
+        <textarea class="field area" placeholder="Describe what happened" [(ngModel)]="description"></textarea>
+
+        <button class="primary-btn" [disabled]="!subject.trim() || !description.trim() || submitting" (click)="submitIssue()">
+          {{ submitting ? 'Submitting...' : 'Submit' }}
+        </button>
+      </div>
+
+      <!-- Issues list -->
+      <div class="section-title">Your Reports</div>
+
+      <div class="loading-row" *ngIf="loadingIssues">
+        <div class="pulse-dot"></div>
+        <span>Loading...</span>
+      </div>
+
+      <div class="empty-state" *ngIf="!loadingIssues && !issues.length">No reports yet.</div>
+
+      <div class="card issue" *ngFor="let issue of issues">
+        <div class="issue-top">
+          <span class="issue-cat">{{ issue.category === 'LostAndFound' ? 'Lost & Found' : 'Report Issue' }}</span>
+          <span class="status-pill" [ngClass]="(issue.status || '').toLowerCase()">{{ issue.status }}</span>
+        </div>
+        <div class="issue-subject">{{ issue.subject }}</div>
+        <div class="issue-desc">{{ issue.description }}</div>
+        <div class="admin-response" *ngIf="issue.adminResponse">
+          <span class="block-label">Response</span>
+          {{ issue.adminResponse }}
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

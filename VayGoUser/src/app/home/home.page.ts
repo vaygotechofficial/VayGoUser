@@ -1,7 +1,9 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
+import { ActionSheetController, ToastController } from '@ionic/angular/standalone';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { Geolocation } from '@capacitor/geolocation';
 import { Subscription } from 'rxjs';
@@ -60,6 +62,29 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   feedback = '';
   locationDenied = false;
 
+  // ── menu / nav ──
+  menuOpen = false;
+
+  // ── saved places ──
+  savedPlaces: any[] = [];
+
+  // ── scheduling ──
+  scheduleEnabled = false;
+  scheduledTime = '';
+
+  // ── promo ──
+  promoCode = '';
+  promoMessage = '';
+  promoValid = false;
+  promoDiscount = 0;
+  validatingPromo = false;
+  availableOffers: any[] = [];
+
+  // ── ETA + sharing ──
+  etaMinutes: number | null = null;
+  etaTarget: string | null = null;
+  private etaPollRef: any;
+
   private gmap!: google.maps.Map;
   private pickupMarker?: google.maps.Marker;
   private dropMarker?: google.maps.Marker;
@@ -71,10 +96,15 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   private googleReady = false;
   private subs: Subscription[] = [];
 
+  cancelReasons: string[] = [];
+
   constructor(
     private api: ApiService,
     private signalr: SignalrService,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private actionSheetCtrl: ActionSheetController,
+    private router: Router,
+    private toastCtrl: ToastController
   ) {}
 
   ngOnInit() {
@@ -84,6 +114,29 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.subs.push(this.signalr.rideCompleted$.subscribe(d => this.onRideCompleted(d)));
     this.subs.push(this.signalr.rideCancelled$.subscribe(d => this.onRideCancelled(d)));
     this.subs.push(this.signalr.driverLocationUpdate$.subscribe(d => this.onDriverLocationUpdate(d)));
+
+    // Cache the canonical cancellation reasons for the action sheet
+    this.api.get('ride/cancel-reasons').subscribe({
+      next: (reasons: string[]) => this.cancelReasons = reasons || [],
+      error: () => this.cancelReasons = ['Change of plans', 'Other']
+    });
+
+    this.loadSavedPlaces();
+    this.loadOffers();
+  }
+
+  private loadSavedPlaces() {
+    this.api.get('places').subscribe({
+      next: (res) => this.savedPlaces = res || [],
+      error: () => this.savedPlaces = []
+    });
+  }
+
+  private loadOffers() {
+    this.api.get('promo').subscribe({
+      next: (res) => this.availableOffers = res || [],
+      error: () => this.availableOffers = []
+    });
   }
 
   ngAfterViewInit() {
@@ -166,7 +219,10 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
         }
       }
       if (this.drop) this.setDrop(this.drop.lat, this.drop.lng, this.drop.address);
-      if (this.state === 'accepted' || this.state === 'started') this.drawRoute();
+      if (this.state === 'accepted' || this.state === 'started') {
+        this.drawRoute();
+        this.startEtaPolling();
+      }
       return true;
     } catch {
       localStorage.removeItem('userActiveBooking');
@@ -329,10 +385,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   bookRide() {
     if (!this.canBook || !this.pickup || !this.drop || !this.selectedVehicleType) return;
 
-    this.state = 'searching';
-    this.statusMessage = 'Searching for a nearby rider…';
-
-    this.api.post('ride/request', {
+    const body: any = {
       pickupLat: this.pickup.lat,
       pickupLong: this.pickup.lng,
       dropLat: this.drop.lat,
@@ -341,7 +394,31 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
       dropAddress: this.drop.address,
       vehicleType: this.selectedVehicleType,
       userId: getCurrentUserId()
-    }).subscribe({
+    };
+    if (this.promoValid && this.promoCode.trim()) {
+      body.promoCode = this.promoCode.trim();
+    }
+
+    // Scheduled ride: send scheduledTime and route to the scheduled list instead of searching.
+    if (this.scheduleEnabled && this.scheduledTime) {
+      body.scheduledTime = new Date(this.scheduledTime).toISOString();
+      this.api.post('ride/request', body).subscribe({
+        next: () => {
+          this.showToast('Ride scheduled.');
+          this.resetBooking();
+          this.router.navigate(['/scheduled-rides']);
+        },
+        error: (err) => {
+          this.statusMessage = err?.error?.message || 'Could not schedule ride. Please try again.';
+        }
+      });
+      return;
+    }
+
+    this.state = 'searching';
+    this.statusMessage = 'Searching for a nearby rider…';
+
+    this.api.post('ride/request', body).subscribe({
       next: (res) => {
         this.activeRide = res?.data;
         if (!res?.data?.driverAssigned) {
@@ -359,12 +436,86 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  cancelRide() {
+  // ── Saved places: pick one as the drop ──
+  useSavedPlace(place: any) {
+    if (!place || place.lat == null) return;
+    const lng = place.long ?? place.lng;
+    this.setDrop(place.lat, lng, place.address);
+    if (this.dropInputRef?.nativeElement) this.dropInputRef.nativeElement.value = place.address;
+    if (this.gmap) {
+      this.gmap.setCenter({ lat: place.lat, lng });
+      this.gmap.setZoom(environment.mapZoom);
+    }
+  }
+
+  // ── Promo code validation ──
+  validatePromo() {
+    const code = this.promoCode.trim();
+    if (!code) { this.clearPromo(); return; }
+    const fare = this.selectedOption?.estimatedFare || 0;
+    this.validatingPromo = true;
+    this.api.get('promo/validate', { code, fare }).subscribe({
+      next: (res) => {
+        this.validatingPromo = false;
+        this.promoValid = !!res?.valid;
+        this.promoMessage = res?.message || (res?.valid ? 'Promo applied!' : 'Invalid promo code.');
+        this.promoDiscount = res?.valid ? (res?.discount || 0) : 0;
+      },
+      error: () => {
+        this.validatingPromo = false;
+        this.promoValid = false;
+        this.promoDiscount = 0;
+        this.promoMessage = 'Could not validate promo code.';
+      }
+    });
+  }
+
+  applyOffer(code: string) {
+    this.promoCode = code;
+    this.validatePromo();
+  }
+
+  private clearPromo() {
+    this.promoValid = false;
+    this.promoDiscount = 0;
+    this.promoMessage = '';
+  }
+
+  get discountedFare(): number | null {
+    if (!this.promoValid || !this.selectedOption) return null;
+    return Math.max(0, this.selectedOption.estimatedFare - this.promoDiscount);
+  }
+
+  async cancelRide() {
     if (!this.activeRide) {
       this.resetBooking();
       return;
     }
-    this.api.post(`ride/cancel/${this.activeRide.rideId}`, {}).subscribe({
+
+    // Before a driver is assigned (still searching) there's no point asking why —
+    // just cancel. Once a ride is accepted, ask the passenger for a reason.
+    if (this.state !== 'accepted') {
+      this.sendCancel(null);
+      return;
+    }
+
+    const reasons = this.cancelReasons.length ? this.cancelReasons : ['Change of plans', 'Other'];
+    const sheet = await this.actionSheetCtrl.create({
+      header: 'Why are you cancelling?',
+      buttons: [
+        ...reasons.map(reason => ({ text: reason, handler: () => this.sendCancel(reason) })),
+        { text: 'Keep ride', role: 'cancel' }
+      ]
+    });
+    await sheet.present();
+  }
+
+  private sendCancel(reason: string | null) {
+    if (!this.activeRide) {
+      this.resetBooking();
+      return;
+    }
+    this.api.post(`ride/cancel/${this.activeRide.rideId}`, reason ? { reason } : {}).subscribe({
       next: () => this.resetBooking(),
       error: () => this.resetBooking()
     });
@@ -380,6 +531,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
   resetBooking() {
     this.clearActiveBooking();
+    this.stopEtaPolling();
     this.state = 'address';
     this.activeRide = null;
     this.driverInfo = null;
@@ -389,6 +541,12 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.feedback = '';
     this.vehicleOptions = [];
     this.drop = null;
+    this.clearPromo();
+    this.promoCode = '';
+    this.scheduleEnabled = false;
+    this.scheduledTime = '';
+    this.etaMinutes = null;
+    this.etaTarget = null;
 
     this.dropMarker?.setMap(null);
     this.dropMarker = undefined;
@@ -407,6 +565,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.state = 'accepted';
     this.statusMessage = `${data.driver?.fullName || 'A driver'} is on the way!`;
     this.drawRoute();
+    this.startEtaPolling();
     this.saveActiveBooking();
   }
 
@@ -424,6 +583,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.activeRide.finalFare = data.finalFare;
     this.state = 'completed';
     this.statusMessage = 'Ride completed. Thanks for riding with VayGo!';
+    this.stopEtaPolling();
     this.saveActiveBooking();
   }
 
@@ -431,7 +591,110 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     if (!this.activeRide || data?.rideId !== this.activeRide.rideId) return;
     this.state = 'cancelled';
     this.statusMessage = data?.reason || 'Ride was cancelled.';
+    this.stopEtaPolling();
     this.clearActiveBooking();
+  }
+
+  // ── ETA polling (every 15s while accepted/started) ──
+  private startEtaPolling() {
+    this.stopEtaPolling();
+    this.fetchEta();
+    this.etaPollRef = setInterval(() => this.fetchEta(), 15000);
+  }
+
+  private stopEtaPolling() {
+    if (this.etaPollRef) {
+      clearInterval(this.etaPollRef);
+      this.etaPollRef = undefined;
+    }
+  }
+
+  private fetchEta() {
+    if (!this.activeRide?.rideId) return;
+    this.api.get(`ride/eta/${this.activeRide.rideId}`).subscribe({
+      next: (res) => {
+        this.ngZone.run(() => {
+          this.etaMinutes = res?.etaMinutes ?? null;
+          this.etaTarget = res?.target ?? null;
+        });
+      },
+      error: () => { /* keep last known ETA */ }
+    });
+  }
+
+  get etaLabel(): string | null {
+    if (this.etaMinutes == null) return null;
+    const who = this.state === 'started' ? 'Drop' : 'Driver';
+    return `${who} ${this.etaMinutes} min away`;
+  }
+
+  // ── Trip sharing ──
+  async shareTrip() {
+    if (!this.activeRide?.rideId) return;
+    this.api.post(`ride/share/${this.activeRide.rideId}`, { userId: getCurrentUserId() }).subscribe({
+      next: async (res) => {
+        const token = res?.shareToken;
+        if (!token) { this.showToast('Could not create share link.'); return; }
+        const link = `${environment.baseUrl}/ride/track/${token}`;
+        const nav: any = navigator;
+        if (nav.share) {
+          try { await nav.share({ title: 'Track my VayGo ride', text: 'Follow my trip live:', url: link }); return; } catch { /* fall through */ }
+        }
+        if (nav.clipboard?.writeText) {
+          try { await nav.clipboard.writeText(link); this.showToast('Trip link copied to clipboard.'); return; } catch { /* fall through */ }
+        }
+        this.showToast(link);
+      },
+      error: () => this.showToast('Could not create share link.')
+    });
+  }
+
+  // ── Emergency SOS ──
+  async triggerSos() {
+    if (!this.activeRide?.rideId) return;
+    const sheet = await this.actionSheetCtrl.create({
+      header: 'Send emergency SOS?',
+      subHeader: 'VayGo safety will be alerted with your location.',
+      buttons: [
+        { text: 'Send SOS', role: 'destructive', handler: () => this.sendSos() },
+        { text: 'Cancel', role: 'cancel' }
+      ]
+    });
+    await sheet.present();
+  }
+
+  private async sendSos() {
+    let lat = this.pickup?.lat || 0;
+    let long = this.pickup?.lng || 0;
+    try {
+      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 8000 });
+      lat = pos.coords.latitude;
+      long = pos.coords.longitude;
+    } catch { /* use fallback */ }
+
+    this.api.post('safety/sos', {
+      rideId: this.activeRide?.rideId,
+      raisedBy: 'User',
+      userId: getCurrentUserId(),
+      lat,
+      long
+    }).subscribe({
+      next: () => this.showToast('SOS sent. Help is being notified.'),
+      error: () => this.showToast('Could not send SOS. Please call emergency services.')
+    });
+  }
+
+  // ── Menu navigation ──
+  toggleMenu() { this.menuOpen = !this.menuOpen; }
+
+  goTo(path: string) {
+    this.menuOpen = false;
+    this.router.navigate([path]);
+  }
+
+  private async showToast(message: string) {
+    const t = await this.toastCtrl.create({ message, duration: 2400, position: 'bottom' });
+    await t.present();
   }
 
   private onDriverLocationUpdate(data: any) {
@@ -483,5 +746,6 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.pickupAutocomplete?.unbindAll();
     this.dropAutocomplete?.unbindAll();
     this.clearRoute();
+    this.stopEtaPolling();
   }
 }

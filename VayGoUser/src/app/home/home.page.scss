@@ -43,9 +43,193 @@ ion-content {
   pointer-events: none;
 }
 
+.menu-btn {
+  pointer-events: auto;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .header-logo {
   height: 32px;
   object-fit: contain;
+}
+
+/* ── SIDE MENU ── */
+.menu-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 40;
+}
+
+.side-menu {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 76%;
+  max-width: 300px;
+  background: linear-gradient(180deg, #3b0a18, #1a050b);
+  z-index: 50;
+  transform: translateX(-105%);
+  transition: transform 0.28s ease;
+  padding: 56px 16px 24px;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+}
+
+.side-menu.open { transform: translateX(0); }
+
+.side-menu-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 20px;
+  padding-left: 6px;
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+/* ── SAVED PLACE CHIPS ── */
+.saved-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 4px;
+}
+
+.saved-chip {
+  background: rgba(139,28,44,0.08);
+  border: 1px solid rgba(139,28,44,0.2);
+  color: #8b1c2c;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 16px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+/* ── PROMO ── */
+.promo-block { margin: 10px 0 4px; }
+
+.promo-row { display: flex; gap: 8px; }
+
+.promo-input {
+  flex: 1;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  outline: none;
+  color: #1a050b;
+  text-transform: uppercase;
+}
+
+.promo-apply {
+  background: rgba(139,28,44,0.1);
+  color: #8b1c2c;
+  border: none;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.promo-apply:disabled { opacity: 0.5; }
+
+.promo-msg { font-size: 12px; color: #c62828; margin-top: 6px; }
+.promo-msg.ok { color: #2e7d32; }
+
+.offers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+.offer-chip {
+  background: #f5f5f5;
+  border: none;
+  color: #555;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 14px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+/* ── SCHEDULE ── */
+.schedule-block { margin: 12px 0 4px; }
+
+.schedule-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #444;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.schedule-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  margin-top: 8px;
+  color: #1a050b;
+}
+
+.strike { text-decoration: line-through; opacity: 0.7; font-weight: 600; }
+
+/* ── ETA + ACTIONS ── */
+.eta-banner {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2e7d32;
+  background: rgba(76,175,80,0.1);
+  border-radius: 10px;
+  padding: 8px;
+  margin-bottom: 12px;
+}
+
+.action-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.action-btn {
+  flex: 1;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a050b;
+  cursor: pointer;
+}
+
+.action-btn.sos {
+  background: rgba(229,57,53,0.12);
+  color: #c62828;
 }
 
 .header-title {

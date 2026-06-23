@@ -35,6 +35,38 @@ export const routes: Routes = [
     loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
   },
   {
+    path: 'ride-history',
+    loadComponent: () => import('./ride-history/ride-history.page').then((m) => m.RideHistoryPage),
+  },
+  {
+    path: 'invoice/:rideId',
+    loadComponent: () => import('./invoice/invoice.page').then((m) => m.InvoicePage),
+  },
+  {
+    path: 'safety',
+    loadComponent: () => import('./safety/safety.page').then((m) => m.SafetyPage),
+  },
+  {
+    path: 'places',
+    loadComponent: () => import('./places/places.page').then((m) => m.PlacesPage),
+  },
+  {
+    path: 'scheduled-rides',
+    loadComponent: () => import('./scheduled-rides/scheduled-rides.page').then((m) => m.ScheduledRidesPage),
+  },
+  {
+    path: 'referral',
+    loadComponent: () => import('./referral/referral.page').then((m) => m.ReferralPage),
+  },
+  {
+    path: 'loyalty',
+    loadComponent: () => import('./loyalty/loyalty.page').then((m) => m.LoyaltyPage),
+  },
+  {
+    path: 'ride/track/:shareToken',
+    loadComponent: () => import('./track/track.page').then((m) => m.TrackPage),
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full',

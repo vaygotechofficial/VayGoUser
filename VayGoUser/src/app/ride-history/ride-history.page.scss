@@ -1,0 +1,150 @@
+ion-content {
+  --background: linear-gradient(180deg, #3b0a18, #1a050b);
+}
+
+.page {
+  min-height: 100%;
+  padding-bottom: 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px 16px;
+}
+
+.back-btn {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.page-body {
+  padding: 0 14px;
+}
+
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 4px;
+  color: rgba(255,255,255,0.75);
+  font-size: 13px;
+}
+
+.pulse-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  animation: pulse 1.2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.5); opacity: 0.5; }
+}
+
+.empty-state {
+  text-align: center;
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  padding: 40px 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+
+.card.tappable { cursor: pointer; }
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.ride-number {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a050b;
+}
+
+.status-pill {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: #eee;
+  color: #666;
+}
+
+.status-pill.completed { background: rgba(76,175,80,0.15); color: #2e7d32; }
+.status-pill.cancelled { background: rgba(229,57,53,0.15); color: #c62828; }
+
+.addr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.addr-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pickup-dot { background: #4caf50; }
+.drop-dot { background: #8b1c2c; }
+
+.addr-text {
+  font-size: 13px;
+  color: #444;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.ride-date { font-size: 12px; color: #888; }
+.ride-fare { font-size: 16px; font-weight: 800; color: #1a050b; }
+
+.card-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 10px;
+  padding-top: 8px;
+}
+
+.rating { font-size: 12px; color: #f57c00; font-weight: 700; }
+.view-invoice { font-size: 12px; color: #8b1c2c; font-weight: 600; }

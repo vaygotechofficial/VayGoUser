@@ -1,0 +1,94 @@
+<ion-content>
+  <div class="page">
+    <div class="page-header">
+      <button class="back-btn" (click)="back()">‹</button>
+      <div class="page-title">Invoice</div>
+    </div>
+
+    <div class="page-body">
+      <div class="loading-row" *ngIf="loading">
+        <div class="pulse-dot"></div>
+        <span>Loading invoice...</span>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && error">{{ error }}</div>
+
+      <div class="receipt" *ngIf="!loading && invoice">
+        <div class="receipt-head">
+          <div class="ride-number">Ride #{{ invoice.rideNumber }}</div>
+          <div class="status-pill" [ngClass]="(invoice.rideStatus || '').toLowerCase()">{{ invoice.rideStatus }}</div>
+        </div>
+
+        <div class="addr-row">
+          <div class="addr-dot pickup-dot"></div>
+          <div class="addr-text">{{ invoice.pickupAddress }}</div>
+        </div>
+        <div class="addr-row">
+          <div class="addr-dot drop-dot"></div>
+          <div class="addr-text">{{ invoice.dropAddress }}</div>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta">
+            <span class="meta-label">Vehicle</span>
+            <span class="meta-value">{{ invoice.vehicleType }}</span>
+          </div>
+          <div class="meta">
+            <span class="meta-label">Requested</span>
+            <span class="meta-value">{{ invoice.requestedTime | date:'short' }}</span>
+          </div>
+          <div class="meta" *ngIf="invoice.startTime">
+            <span class="meta-label">Started</span>
+            <span class="meta-value">{{ invoice.startTime | date:'short' }}</span>
+          </div>
+          <div class="meta" *ngIf="invoice.endTime">
+            <span class="meta-label">Ended</span>
+            <span class="meta-value">{{ invoice.endTime | date:'short' }}</span>
+          </div>
+        </div>
+
+        <div class="driver-block" *ngIf="invoice.driver">
+          <div class="block-label">Driver</div>
+          <div class="driver-line">
+            <span>{{ invoice.driver.fullName }}</span>
+            <a class="call-link" *ngIf="invoice.driver.mobileNumber" href="tel:{{ invoice.driver.mobileNumber }}">{{ invoice.driver.mobileNumber }}</a>
+          </div>
+        </div>
+
+        <div class="fare-block" *ngIf="invoice.fare">
+          <div class="block-label">Fare Breakdown</div>
+
+          <div class="fare-line">
+            <span>Distance</span>
+            <span>{{ invoice.fare.distanceKm }} km</span>
+          </div>
+          <div class="fare-line">
+            <span>Base fare</span>
+            <span>{{ currency }}{{ invoice.fare.baseFare }}</span>
+          </div>
+          <div class="fare-line">
+            <span>Distance charge</span>
+            <span>{{ currency }}{{ invoice.fare.distanceCharge }}</span>
+          </div>
+          <div class="fare-line" *ngIf="invoice.fare.vehicleMultiplier && invoice.fare.vehicleMultiplier !== 1">
+            <span>Vehicle multiplier</span>
+            <span>×{{ invoice.fare.vehicleMultiplier }}</span>
+          </div>
+          <div class="fare-line">
+            <span>Gross fare</span>
+            <span>{{ currency }}{{ invoice.fare.grossFare }}</span>
+          </div>
+          <div class="fare-line discount" *ngIf="invoice.fare.discount">
+            <span>Discount{{ invoice.fare.promoCode ? ' (' + invoice.fare.promoCode + ')' : '' }}</span>
+            <span>-{{ currency }}{{ invoice.fare.discount }}</span>
+          </div>
+
+          <div class="fare-total">
+            <span>Total</span>
+            <span>{{ currency }}{{ invoice.fare.total }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

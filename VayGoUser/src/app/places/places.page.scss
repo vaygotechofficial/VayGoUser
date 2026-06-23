@@ -1,0 +1,68 @@
+ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
+
+.page { min-height: 100%; padding-bottom: 24px; }
+
+.page-header { display: flex; align-items: center; gap: 8px; padding: 48px 16px 16px; }
+
+.back-btn {
+  background: rgba(255,255,255,0.12); border: none; color: #fff;
+  width: 36px; height: 36px; border-radius: 50%; font-size: 26px; line-height: 1; cursor: pointer;
+}
+
+.page-title { font-size: 20px; font-weight: 700; color: #fff; }
+.page-body { padding: 0 14px; }
+
+.card {
+  background: #fff; border-radius: 16px; padding: 16px;
+  margin-bottom: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+
+.tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.tab {
+  flex: 1; background: #f3f3f3; border: none; border-radius: 10px;
+  padding: 9px 4px; font-size: 12px; font-weight: 600; color: #777; cursor: pointer;
+}
+.tab.active { background: rgba(139,28,44,0.1); color: #8b1c2c; }
+
+.field {
+  width: 100%; box-sizing: border-box; border: 1px solid #eee;
+  border-radius: 12px; padding: 12px; font-size: 14px; margin-bottom: 10px;
+  outline: none; color: #1a050b;
+}
+
+.selected-addr {
+  font-size: 12px; color: #2e7d32; background: rgba(76,175,80,0.1);
+  border-radius: 10px; padding: 8px 10px; margin-bottom: 10px;
+}
+
+.primary-btn {
+  width: 100%; background: linear-gradient(135deg, #8b1c2c, #3b0a18);
+  color: #fff; border: none; border-radius: 14px; padding: 14px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.primary-btn:disabled { opacity: 0.5; }
+
+.loading-row { display: flex; align-items: center; gap: 10px; padding: 12px 4px; color: rgba(255,255,255,0.75); font-size: 13px; }
+.pulse-dot { width: 12px; height: 12px; border-radius: 50%; background: #fff; animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } }
+
+.empty-state { text-align: center; color: rgba(255,255,255,0.7); font-size: 14px; padding: 30px 20px; }
+
+.place-card {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border-radius: 14px; padding: 12px 14px;
+  margin-bottom: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+
+.place-icon { font-size: 24px; }
+.place-info { flex: 1; min-width: 0; }
+.place-label { font-size: 14px; font-weight: 700; color: #1a050b; }
+.place-address {
+  font-size: 12px; color: #777;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.del-btn {
+  background: #f5f5f5; border: none; color: #999;
+  width: 30px; height: 30px; border-radius: 50%; font-size: 14px; cursor: pointer; flex-shrink: 0;
+}

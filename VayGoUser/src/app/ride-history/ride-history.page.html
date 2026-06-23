@@ -1,0 +1,49 @@
+<ion-content>
+  <div class="page">
+    <div class="page-header">
+      <button class="back-btn" (click)="back()">‹</button>
+      <div class="page-title">Your Rides</div>
+    </div>
+
+    <div class="page-body">
+      <div class="loading-row" *ngIf="loading">
+        <div class="pulse-dot"></div>
+        <span>Loading your rides...</span>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && error">{{ error }}</div>
+      <div class="empty-state" *ngIf="!loading && !error && !rides.length">
+        You haven't taken any rides yet.
+      </div>
+
+      <div class="card"
+        *ngFor="let ride of rides"
+        [class.tappable]="isCompleted(ride)"
+        (click)="openRide(ride)">
+        <div class="card-top">
+          <div class="ride-number">#{{ ride.rideNumber }}</div>
+          <div class="status-pill" [ngClass]="(ride.rideStatus || '').toLowerCase()">{{ ride.rideStatus }}</div>
+        </div>
+
+        <div class="addr-row">
+          <div class="addr-dot pickup-dot"></div>
+          <div class="addr-text">{{ ride.pickupAddress }}</div>
+        </div>
+        <div class="addr-row">
+          <div class="addr-dot drop-dot"></div>
+          <div class="addr-text">{{ ride.dropAddress }}</div>
+        </div>
+
+        <div class="card-bottom">
+          <span class="ride-date">{{ ride.requestedTime | date:'medium' }}</span>
+          <span class="ride-fare">₹{{ ride.finalFare || ride.estimatedFare }}</span>
+        </div>
+
+        <div class="card-foot" *ngIf="isCompleted(ride)">
+          <span class="rating" *ngIf="ride.rating">★ {{ ride.rating }}</span>
+          <span class="view-invoice">View invoice ›</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

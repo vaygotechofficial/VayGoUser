@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">VayGoUser</string>
-    <string name="title_activity_main">VayGoUser</string>
-    <string name="package_name">io.ionic.starter</string>
-    <string name="custom_url_scheme">io.ionic.starter</string>
+    <string name="app_name">VayGo</string>
+    <string name="title_activity_main">VayGo</string>
+    <string name="package_name">com.vaygo.user</string>
+    <string name="custom_url_scheme">com.vaygo.user</string>
 </resources>

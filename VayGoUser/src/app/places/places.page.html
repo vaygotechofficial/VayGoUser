@@ -1,0 +1,45 @@
+<ion-content>
+  <div class="page">
+    <div class="page-header">
+      <button class="back-btn" (click)="back()">‹</button>
+      <div class="page-title">Saved Places</div>
+    </div>
+
+    <div class="page-body">
+      <!-- Add form -->
+      <div class="card">
+        <div class="tabs">
+          <button class="tab" [class.active]="placeType === 'Home'" (click)="placeType = 'Home'">🏠 Home</button>
+          <button class="tab" [class.active]="placeType === 'Work'" (click)="placeType = 'Work'">💼 Work</button>
+          <button class="tab" [class.active]="placeType === 'Favorite'" (click)="placeType = 'Favorite'">⭐ Favorite</button>
+        </div>
+
+        <input class="field" placeholder="Label (e.g. Mom's house)" [(ngModel)]="label" />
+        <input #placeInput class="field" placeholder="Search address" autocomplete="off" />
+
+        <div class="selected-addr" *ngIf="selected">{{ selected.address }}</div>
+
+        <button class="primary-btn" [disabled]="!selected || saving" (click)="savePlace()">
+          {{ saving ? 'Saving...' : 'Save Place' }}
+        </button>
+      </div>
+
+      <!-- List -->
+      <div class="loading-row" *ngIf="loading">
+        <div class="pulse-dot"></div>
+        <span>Loading...</span>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && !places.length">No saved places yet.</div>
+
+      <div class="place-card" *ngFor="let place of places">
+        <span class="place-icon">{{ iconFor(place.placeType) }}</span>
+        <div class="place-info">
+          <div class="place-label">{{ place.label || place.placeType }}</div>
+          <div class="place-address">{{ place.address }}</div>
+        </div>
+        <button class="del-btn" (click)="deletePlace(place)">✕</button>
+      </div>
+    </div>
+  </div>
+</ion-content>

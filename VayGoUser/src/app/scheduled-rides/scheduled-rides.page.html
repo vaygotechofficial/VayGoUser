@@ -1,0 +1,40 @@
+<ion-content>
+  <div class="page">
+    <div class="page-header">
+      <button class="back-btn" (click)="back()">‹</button>
+      <div class="page-title">Scheduled Rides</div>
+    </div>
+
+    <div class="page-body">
+      <div class="loading-row" *ngIf="loading">
+        <div class="pulse-dot"></div>
+        <span>Loading...</span>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && !rides.length">No upcoming scheduled rides.</div>
+
+      <div class="card" *ngFor="let ride of rides">
+        <div class="card-top">
+          <div class="ride-number">#{{ ride.rideNumber }}</div>
+          <div class="sched-time">{{ ride.scheduledTime | date:'MMM d, h:mm a' }}</div>
+        </div>
+
+        <div class="addr-row">
+          <div class="addr-dot pickup-dot"></div>
+          <div class="addr-text">{{ ride.pickupAddress }}</div>
+        </div>
+        <div class="addr-row">
+          <div class="addr-dot drop-dot"></div>
+          <div class="addr-text">{{ ride.dropAddress }}</div>
+        </div>
+
+        <div class="card-bottom">
+          <span class="vehicle">{{ ride.vehicleType }}</span>
+          <span class="ride-fare">₹{{ ride.estimatedFare }}</span>
+        </div>
+
+        <button class="cancel-btn" (click)="cancel(ride)">Cancel ride</button>
+      </div>
+    </div>
+  </div>
+</ion-content>

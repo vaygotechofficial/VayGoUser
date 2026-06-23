@@ -1,0 +1,42 @@
+<ion-content>
+  <div class="page">
+    <div class="page-header">
+      <img src="assets/VayGoLogoWhite.png" class="header-logo" alt="VayGo" />
+      <div class="page-title">Live Trip</div>
+    </div>
+
+    <div class="page-body">
+      <div class="loading-row" *ngIf="loading">
+        <div class="pulse-dot"></div>
+        <span>Loading trip...</span>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && error">{{ error }}</div>
+
+      <div class="card" *ngIf="!loading && ride">
+        <div class="status-banner">{{ ride.rideStatus }}</div>
+
+        <div class="driver-row" *ngIf="ride.driver">
+          <div class="driver-avatar">{{ (ride.driver.fullName || 'D')[0] }}</div>
+          <div class="driver-info">
+            <div class="driver-name">{{ ride.driver.fullName }}</div>
+            <div class="driver-vehicle">{{ ride.vehicleType }}</div>
+          </div>
+        </div>
+
+        <div class="addr-row">
+          <div class="addr-dot pickup-dot"></div>
+          <div class="addr-text">{{ ride.pickupAddress }}</div>
+        </div>
+        <div class="addr-row">
+          <div class="addr-dot drop-dot"></div>
+          <div class="addr-text">{{ ride.dropAddress }}</div>
+        </div>
+
+        <div class="eta-row" *ngIf="ride.etaMinutes != null">
+          Arriving in about {{ ride.etaMinutes }} min
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

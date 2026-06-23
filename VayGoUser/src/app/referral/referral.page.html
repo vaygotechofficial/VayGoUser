@@ -1,0 +1,42 @@
+<ion-content>
+  <div class="page">
+    <div class="page-header">
+      <button class="back-btn" (click)="back()">‹</button>
+      <div class="page-title">Refer & Earn</div>
+    </div>
+
+    <div class="page-body">
+      <div class="loading-row" *ngIf="loading">
+        <div class="pulse-dot"></div>
+        <span>Loading...</span>
+      </div>
+
+      <div *ngIf="!loading && data">
+        <div class="hero-card">
+          <div class="hero-label">Your referral code</div>
+          <div class="hero-code">{{ data.referralCode }}</div>
+          <button class="share-btn" (click)="shareCode()">Share code</button>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat">
+            <div class="stat-value">{{ data.referredCount || 0 }}</div>
+            <div class="stat-label">Friends referred</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">₹{{ data.bonusPerReferral || 0 }}</div>
+            <div class="stat-label">Bonus each</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Have a code?</div>
+          <input class="field" placeholder="Enter referral code" [(ngModel)]="applyCode" />
+          <button class="primary-btn" [disabled]="!applyCode.trim() || applying" (click)="apply()">
+            {{ applying ? 'Applying...' : 'Apply code' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

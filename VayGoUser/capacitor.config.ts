@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
-  appName: 'VayGoUser',
+  appId: 'com.vaygo.user',
+  appName: 'VayGo',
   webDir: 'www'
 };
 

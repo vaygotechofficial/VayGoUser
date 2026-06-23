@@ -17,8 +17,21 @@
 
     <!-- HEADER -->
     <div class="header">
+      <button class="menu-btn" (click)="toggleMenu()">☰</button>
       <img src="assets/VayGoLogoWhite.png" class="header-logo" alt="VayGo" />
       <div class="header-title">Book a Ride</div>
+    </div>
+
+    <!-- SLIDE-OUT MENU -->
+    <div class="menu-overlay" *ngIf="menuOpen" (click)="toggleMenu()"></div>
+    <div class="side-menu" [class.open]="menuOpen">
+      <div class="side-menu-title">VayGo</div>
+      <button class="menu-item" (click)="goTo('/ride-history')">🧾 Ride History</button>
+      <button class="menu-item" (click)="goTo('/scheduled-rides')">🗓️ Scheduled Rides</button>
+      <button class="menu-item" (click)="goTo('/places')">📍 Saved Places</button>
+      <button class="menu-item" (click)="goTo('/referral')">🎁 Refer &amp; Earn</button>
+      <button class="menu-item" (click)="goTo('/loyalty')">⭐ Loyalty Points</button>
+      <button class="menu-item" (click)="goTo('/safety')">🛡️ Safety &amp; Support</button>
     </div>
 
     <!-- PICKUP / DROP SEARCH — always in DOM so Autocomplete refs stay valid -->
@@ -39,6 +52,13 @@
           class="search-input"
           placeholder="Where to?"
           autocomplete="off" />
+      </div>
+
+      <div class="saved-chips" *ngIf="savedPlaces.length">
+        <button class="saved-chip" *ngFor="let place of savedPlaces" (click)="useSavedPlace(place)">
+          {{ place.placeType === 'Home' ? '🏠' : place.placeType === 'Work' ? '💼' : '⭐' }}
+          {{ place.label || place.placeType }}
+        </button>
       </div>
 
       <button class="book-btn" [disabled]="!pickup || !drop" (click)="confirmLocations()">Find Rides</button>
@@ -87,8 +107,49 @@
         </div>
       </div>
 
-      <button class="book-btn" [disabled]="!canBook" (click)="bookRide()">
-        {{ selectedOption ? 'Book ' + selectedOption.vehicleType + ' • ₹' + selectedOption.estimatedFare : 'Select a vehicle' }}
+      <!-- PROMO CODE -->
+      <div class="promo-block">
+        <div class="promo-row">
+          <input
+            class="promo-input"
+            placeholder="Promo code"
+            [(ngModel)]="promoCode"
+            (ngModelChange)="promoValid = false; promoMessage = ''" />
+          <button class="promo-apply" [disabled]="!promoCode.trim() || validatingPromo" (click)="validatePromo()">
+            {{ validatingPromo ? '…' : 'Apply' }}
+          </button>
+        </div>
+        <div class="promo-msg" [class.ok]="promoValid" *ngIf="promoMessage">{{ promoMessage }}</div>
+
+        <div class="offers" *ngIf="availableOffers.length">
+          <button class="offer-chip" *ngFor="let offer of availableOffers" (click)="applyOffer(offer.code)">
+            {{ offer.code }}<span *ngIf="offer.description"> · {{ offer.description }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SCHEDULE FOR LATER -->
+      <div class="schedule-block">
+        <label class="schedule-toggle">
+          <input type="checkbox" [(ngModel)]="scheduleEnabled" />
+          <span>Schedule for later</span>
+        </label>
+        <input
+          *ngIf="scheduleEnabled"
+          class="schedule-input"
+          type="datetime-local"
+          [(ngModel)]="scheduledTime" />
+      </div>
+
+      <button class="book-btn" [disabled]="!canBook || (scheduleEnabled && !scheduledTime)" (click)="bookRide()">
+        <ng-container *ngIf="!selectedOption">Select a vehicle</ng-container>
+        <ng-container *ngIf="selectedOption">
+          {{ scheduleEnabled ? 'Schedule ' : 'Book ' }}{{ selectedOption.vehicleType }} •
+          <ng-container *ngIf="discountedFare !== null">
+            <span class="strike">₹{{ selectedOption.estimatedFare }}</span> ₹{{ discountedFare }}
+          </ng-container>
+          <ng-container *ngIf="discountedFare === null">₹{{ selectedOption.estimatedFare }}</ng-container>
+        </ng-container>
       </button>
     </div>
 
@@ -119,6 +180,8 @@
 
       <div class="status-banner">{{ state === 'started' ? 'Ride in progress' : 'Driver is on the way' }}</div>
 
+      <div class="eta-banner" *ngIf="etaLabel">⏱ {{ etaLabel }}</div>
+
       <!-- OTP code — passenger shows this to the rider to start the trip -->
       <div class="otp-box">
         <p class="otp-box-label">Show this code to your rider</p>
@@ -143,6 +206,11 @@
           <div class="addr-dot drop-dot"></div>
           <div class="addr-text">{{ activeRide?.dropAddress || drop?.address }}</div>
         </div>
+      </div>
+
+      <div class="action-row">
+        <button class="action-btn" (click)="shareTrip()">📤 Share trip</button>
+        <button class="action-btn sos" (click)="triggerSos()">🆘 SOS</button>
       </div>
 
       <button class="cancel-link" *ngIf="state === 'accepted'" (click)="cancelRide()">Cancel Ride</button>

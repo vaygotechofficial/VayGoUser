@@ -1,0 +1,37 @@
+<ion-content>
+  <div class="page">
+    <div class="page-header">
+      <button class="back-btn" (click)="back()">‹</button>
+      <div class="page-title">Loyalty Points</div>
+    </div>
+
+    <div class="page-body">
+      <div class="loading-row" *ngIf="loading">
+        <div class="pulse-dot"></div>
+        <span>Loading...</span>
+      </div>
+
+      <div *ngIf="!loading">
+        <div class="hero-card">
+          <div class="hero-label">Available balance</div>
+          <div class="hero-balance">{{ balance }} <span class="pts">pts</span></div>
+          <button class="redeem-btn" [disabled]="!balance" (click)="redeem()">Redeem points</button>
+        </div>
+
+        <div class="section-title">History</div>
+
+        <div class="empty-state" *ngIf="!history.length">No points activity yet.</div>
+
+        <div class="history-card" *ngFor="let h of history">
+          <div class="history-info">
+            <div class="history-reason">{{ h.reason }}</div>
+            <div class="history-date">{{ h.createdDate | date:'medium' }}</div>
+          </div>
+          <div class="history-points" [class.negative]="h.points < 0">
+            {{ h.points > 0 ? '+' : '' }}{{ h.points }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
