@@ -293,7 +293,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
   private setPickup(lat: number, lng: number, address: string) {
     this.pickup = { lat, lng, address };
-    this.checkServiceable(lat, lng);
+    this.checkServiceability();
 
     if (this.pickupMarker) {
       this.pickupMarker.setPosition({ lat, lng });
@@ -311,20 +311,29 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Ask the API whether this pickup is inside a serviceable city.
-  private checkServiceable(lat: number, lng: number) {
-    this.api.get('service-areas/check', { lat, lng }).subscribe({
-      next: (r: any) => {
-        this.serviceable = r?.serviceable !== false;
-        this.serviceMessage = this.serviceable ? '' : (r?.message || 'Sorry, we are not serving this area yet.');
-      },
-      // Fail open if the check is unavailable — booking will still be validated server-side.
-      error: () => { this.serviceable = true; this.serviceMessage = ''; }
-    });
+  // Check serviceability of the ride: the whole route (start + end) when both are set,
+  // otherwise just the pickup. Shows "not serving this area" and blocks booking.
+  private checkServiceability() {
+    const apply = (r: any) => {
+      this.serviceable = r?.serviceable !== false;
+      this.serviceMessage = this.serviceable ? '' : (r?.message || 'Sorry, we are not serving this area yet.');
+    };
+    const fail = () => { this.serviceable = true; this.serviceMessage = ''; }; // fail open; server re-validates
+
+    if (this.pickup && this.drop) {
+      this.api.get('service-areas/check-route', {
+        pickupLat: this.pickup.lat, pickupLng: this.pickup.lng,
+        dropLat: this.drop.lat, dropLng: this.drop.lng
+      }).subscribe({ next: apply, error: fail });
+    } else if (this.pickup) {
+      this.api.get('service-areas/check', { lat: this.pickup.lat, lng: this.pickup.lng })
+        .subscribe({ next: apply, error: fail });
+    }
   }
 
   private setDrop(lat: number, lng: number, address: string) {
     this.drop = { lat, lng, address };
+    this.checkServiceability();
 
     if (this.dropMarker) {
       this.dropMarker.setPosition({ lat, lng });
