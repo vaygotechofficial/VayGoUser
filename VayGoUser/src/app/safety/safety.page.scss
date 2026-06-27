@@ -18,7 +18,7 @@ ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
 .sos-btn {
   width: 100%;
   display: flex; align-items: center; justify-content: center; gap: 10px;
-  background: linear-gradient(135deg, #e53935, #8b1c2c);
+  background: linear-gradient(135deg, #e53935, #650015);
   color: #fff; border: none; border-radius: 16px;
   padding: 18px; font-size: 18px; font-weight: 800; cursor: pointer;
   box-shadow: 0 6px 18px rgba(229,57,53,0.4);
@@ -39,7 +39,7 @@ ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
   padding: 10px; font-size: 13px; font-weight: 600; color: #777; cursor: pointer;
 }
 
-.tab.active { background: rgba(139,28,44,0.1); color: #8b1c2c; }
+.tab.active { background: rgba(101, 0, 21,0.1); color: #650015; }
 
 .field {
   width: 100%; box-sizing: border-box; border: 1px solid #eee;
@@ -50,7 +50,7 @@ ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
 .field.area { min-height: 80px; resize: none; }
 
 .primary-btn {
-  width: 100%; background: linear-gradient(135deg, #8b1c2c, #3b0a18);
+  width: 100%; background: linear-gradient(135deg, #650015, #3b0a18);
   color: #fff; border: none; border-radius: 14px; padding: 14px;
   font-size: 15px; font-weight: 700; cursor: pointer;
 }
@@ -69,7 +69,7 @@ ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
 .empty-state { text-align: center; color: rgba(255,255,255,0.7); font-size: 14px; padding: 20px; }
 
 .issue-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.issue-cat { font-size: 11px; font-weight: 700; color: #8b1c2c; text-transform: uppercase; letter-spacing: 0.5px; }
+.issue-cat { font-size: 11px; font-weight: 700; color: #650015; text-transform: uppercase; letter-spacing: 0.5px; }
 
 .status-pill {
   font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
@@ -87,6 +87,6 @@ ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
 }
 
 .block-label {
-  display: block; font-size: 10px; font-weight: 700; color: #8b1c2c;
+  display: block; font-size: 10px; font-weight: 700; color: #650015;
   text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px;
 }

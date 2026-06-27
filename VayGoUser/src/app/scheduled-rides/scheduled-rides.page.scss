@@ -24,12 +24,12 @@ ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
 
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .ride-number { font-size: 13px; font-weight: 700; color: #1a050b; }
-.sched-time { font-size: 12px; font-weight: 700; color: #8b1c2c; }
+.sched-time { font-size: 12px; font-weight: 700; color: #650015; }
 
 .addr-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 .addr-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .pickup-dot { background: #4caf50; }
-.drop-dot { background: #8b1c2c; }
+.drop-dot { background: #650015; }
 .addr-text { font-size: 13px; color: #444; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .card-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
@@ -37,7 +37,7 @@ ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
 .ride-fare { font-size: 16px; font-weight: 800; color: #1a050b; }
 
 .cancel-btn {
-  width: 100%; background: none; border: 1px solid #e0a0a8; color: #8b1c2c;
+  width: 100%; background: none; border: 1px solid #e0a0a8; color: #650015;
   border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 600;
   margin-top: 12px; cursor: pointer;
 }

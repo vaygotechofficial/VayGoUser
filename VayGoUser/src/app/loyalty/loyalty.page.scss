@@ -21,11 +21,11 @@ ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
 }
 
 .hero-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.8px; }
-.hero-balance { font-size: 40px; font-weight: 800; color: #8b1c2c; margin: 6px 0 14px; }
+.hero-balance { font-size: 40px; font-weight: 800; color: #650015; margin: 6px 0 14px; }
 .pts { font-size: 18px; color: #888; font-weight: 600; }
 
 .redeem-btn {
-  background: linear-gradient(135deg, #8b1c2c, #3b0a18); color: #fff;
+  background: linear-gradient(135deg, #650015, #3b0a18); color: #fff;
   border: none; border-radius: 12px; padding: 12px 28px; font-size: 14px; font-weight: 700; cursor: pointer;
 }
 .redeem-btn:disabled { opacity: 0.5; }

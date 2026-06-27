@@ -49,6 +49,10 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   pickup: { lat: number; lng: number; address: string } | null = null;
   drop: { lat: number; lng: number; address: string } | null = null;
 
+  // Service-area geofence: is the chosen pickup in a city we serve?
+  serviceable = true;
+  serviceMessage = '';
+
   vehicleOptions: VehicleOption[] = [];
   selectedVehicleType: string | null = null;
   loadingOptions = false;
@@ -289,6 +293,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
   private setPickup(lat: number, lng: number, address: string) {
     this.pickup = { lat, lng, address };
+    this.checkServiceable(lat, lng);
 
     if (this.pickupMarker) {
       this.pickupMarker.setPosition({ lat, lng });
@@ -306,6 +311,18 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Ask the API whether this pickup is inside a serviceable city.
+  private checkServiceable(lat: number, lng: number) {
+    this.api.get('service-areas/check', { lat, lng }).subscribe({
+      next: (r: any) => {
+        this.serviceable = r?.serviceable !== false;
+        this.serviceMessage = this.serviceable ? '' : (r?.message || 'Sorry, we are not serving this area yet.');
+      },
+      // Fail open if the check is unavailable — booking will still be validated server-side.
+      error: () => { this.serviceable = true; this.serviceMessage = ''; }
+    });
+  }
+
   private setDrop(lat: number, lng: number, address: string) {
     this.drop = { lat, lng, address };
 
@@ -318,7 +335,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
           scale: 10,
-          fillColor: '#8b1c2c',
+          fillColor: '#650015',
           fillOpacity: 1,
           strokeColor: '#fff',
           strokeWeight: 3
@@ -379,7 +396,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get canBook(): boolean {
-    return !!(this.pickup && this.drop && this.selectedVehicleType);
+    return !!(this.pickup && this.drop && this.selectedVehicleType && this.serviceable);
   }
 
   bookRide() {
@@ -724,7 +741,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.directionsRenderer = new google.maps.DirectionsRenderer({
       map: this.gmap,
       suppressMarkers: true,
-      polylineOptions: { strokeColor: '#8b1c2c', strokeWeight: 5, strokeOpacity: 0.8 }
+      polylineOptions: { strokeColor: '#650015', strokeWeight: 5, strokeOpacity: 0.8 }
     });
     ds.route({
       origin: { lat: this.pickup.lat, lng: this.pickup.lng },

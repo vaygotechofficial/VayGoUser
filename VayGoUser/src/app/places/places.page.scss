@@ -22,7 +22,7 @@ ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
   flex: 1; background: #f3f3f3; border: none; border-radius: 10px;
   padding: 9px 4px; font-size: 12px; font-weight: 600; color: #777; cursor: pointer;
 }
-.tab.active { background: rgba(139,28,44,0.1); color: #8b1c2c; }
+.tab.active { background: rgba(101, 0, 21,0.1); color: #650015; }
 
 .field {
   width: 100%; box-sizing: border-box; border: 1px solid #eee;
@@ -36,7 +36,7 @@ ion-content { --background: linear-gradient(180deg, #3b0a18, #1a050b); }
 }
 
 .primary-btn {
-  width: 100%; background: linear-gradient(135deg, #8b1c2c, #3b0a18);
+  width: 100%; background: linear-gradient(135deg, #650015, #3b0a18);
   color: #fff; border: none; border-radius: 14px; padding: 14px;
   font-size: 15px; font-weight: 700; cursor: pointer;
 }

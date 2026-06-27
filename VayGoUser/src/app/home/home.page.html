@@ -61,7 +61,11 @@
         </button>
       </div>
 
-      <button class="book-btn" [disabled]="!pickup || !drop" (click)="confirmLocations()">Find Rides</button>
+      <div class="service-warning" *ngIf="pickup && !serviceable">
+        🚫 {{ serviceMessage }}
+      </div>
+
+      <button class="book-btn" [disabled]="!pickup || !drop || !serviceable" (click)="confirmLocations()">Find Rides</button>
     </div>
 
     <!-- VEHICLE SELECTION + BOOK -->

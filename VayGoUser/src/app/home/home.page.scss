@@ -25,9 +25,9 @@ ion-content {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #8b1c2c;
+  background: #650015;
   border: 3px solid #fff;
-  box-shadow: 0 0 0 2px rgba(139,28,44,0.4);
+  box-shadow: 0 0 0 2px rgba(101, 0, 21,0.4);
 }
 
 /* ── HEADER (floating over map) ── */
@@ -116,9 +116,9 @@ ion-content {
 }
 
 .saved-chip {
-  background: rgba(139,28,44,0.08);
-  border: 1px solid rgba(139,28,44,0.2);
-  color: #8b1c2c;
+  background: rgba(101, 0, 21,0.08);
+  border: 1px solid rgba(101, 0, 21,0.2);
+  color: #650015;
   font-size: 12px;
   font-weight: 600;
   border-radius: 16px;
@@ -143,8 +143,8 @@ ion-content {
 }
 
 .promo-apply {
-  background: rgba(139,28,44,0.1);
-  color: #8b1c2c;
+  background: rgba(101, 0, 21,0.1);
+  color: #650015;
   border: none;
   border-radius: 12px;
   padding: 0 16px;
@@ -296,7 +296,7 @@ ion-content {
   width: 100%;
   background: none;
   border: none;
-  color: #8b1c2c;
+  color: #650015;
   font-size: 12px;
   font-weight: 600;
   text-align: left;
@@ -351,7 +351,7 @@ ion-content {
 }
 
 .pickup-dot { background: #4caf50; }
-.drop-dot { background: #8b1c2c; }
+.drop-dot { background: #650015; }
 
 .addr-text {
   font-size: 13px;
@@ -374,7 +374,7 @@ ion-content {
 .pulse-dot {
   width: 12px; height: 12px;
   border-radius: 50%;
-  background: #8b1c2c;
+  background: #650015;
   animation: pulse 1.2s infinite;
   flex-shrink: 0;
 }
@@ -396,7 +396,7 @@ ion-content {
 .category-label {
   font-size: 11px;
   font-weight: 700;
-  color: #8b1c2c;
+  color: #650015;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin-bottom: 6px;
@@ -421,8 +421,8 @@ ion-content {
 }
 
 .vehicle-card.selected {
-  border-color: #8b1c2c;
-  background: rgba(139,28,44,0.06);
+  border-color: #650015;
+  background: rgba(101, 0, 21,0.06);
 }
 
 .vehicle-card.unavailable {
@@ -431,8 +431,8 @@ ion-content {
 
 .vehicle-card.unavailable.selected {
   opacity: 1;
-  border-color: #8b1c2c;
-  background: rgba(139,28,44,0.06);
+  border-color: #650015;
+  background: rgba(101, 0, 21,0.06);
 }
 
 .vehicle-icon {
@@ -456,7 +456,7 @@ ion-content {
 .vehicle-fare {
   font-size: 13px;
   font-weight: 800;
-  color: #8b1c2c;
+  color: #650015;
   margin-top: 2px;
 }
 
@@ -469,7 +469,7 @@ ion-content {
 /* ── BUTTONS ── */
 .book-btn {
   width: 100%;
-  background: linear-gradient(135deg, #8b1c2c, #3b0a18);
+  background: linear-gradient(135deg, #650015, #3b0a18);
   color: #fff;
   border: none;
   border-radius: 14px;
@@ -489,7 +489,7 @@ ion-content {
   width: 100%;
   background: none;
   border: none;
-  color: #8b1c2c;
+  color: #650015;
   font-size: 14px;
   font-weight: 600;
   padding: 10px 0 2px;
@@ -519,7 +519,7 @@ ion-content {
 .pulse-ring {
   position: absolute;
   inset: 0;
-  border: 3px solid #8b1c2c;
+  border: 3px solid #650015;
   border-radius: 50%;
   animation: pulseRing 1.4s infinite;
 }
@@ -546,7 +546,7 @@ ion-content {
 .status-banner {
   font-size: 13px;
   font-weight: 700;
-  color: #8b1c2c;
+  color: #650015;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   text-align: center;
@@ -567,7 +567,7 @@ ion-content {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8b1c2c, #3b0a18);
+  background: linear-gradient(135deg, #650015, #3b0a18);
   color: #fff;
   display: flex;
   align-items: center;
@@ -664,7 +664,7 @@ ion-content {
 
 .otp-box {
   background: #f9f2f4;
-  border: 2px dashed #8b1c2c;
+  border: 2px dashed #650015;
   border-radius: 14px;
   padding: 12px 16px;
   text-align: center;
@@ -683,7 +683,7 @@ ion-content {
   font-size: 34px;
   font-weight: 800;
   letter-spacing: 10px;
-  color: #8b1c2c;
+  color: #650015;
 }
 
 /* ── LOCATION GATE ── */
@@ -727,9 +727,9 @@ ion-content {
 }
 
 .location-gate-btn {
-  background: linear-gradient(135deg, #8b1c2c, #3b0a18);
+  background: linear-gradient(135deg, #650015, #3b0a18);
   color: #fff;
-  border: 2px solid rgba(139,28,44,0.6);
+  border: 2px solid rgba(101, 0, 21,0.6);
   border-radius: 14px;
   padding: 14px 40px;
   font-size: 16px;
@@ -737,4 +737,16 @@ ion-content {
   cursor: pointer;
   width: 100%;
   max-width: 260px;
+}
+
+.service-warning {
+  margin: 8px 0 4px;
+  padding: 10px 12px;
+  background: rgba(198, 40, 40, 0.1);
+  border: 1px solid rgba(198, 40, 40, 0.35);
+  color: #b71c1c;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
 }
