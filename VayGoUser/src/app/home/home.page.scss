@@ -107,6 +107,19 @@ ion-content {
   cursor: pointer;
 }
 
+.menu-version {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 24px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
 /* ── SAVED PLACE CHIPS ── */
 .saved-chips {
   display: flex;
@@ -127,7 +140,7 @@ ion-content {
 }
 
 /* ── PROMO ── */
-.promo-block { margin: 10px 0 4px; }
+.promo-block { margin: 6px 0 2px; }
 
 .promo-row { display: flex; gap: 8px; }
 
@@ -138,6 +151,7 @@ ion-content {
   padding: 10px 12px;
   font-size: 13px;
   outline: none;
+  background: #f4f1f2;
   color: #1a050b;
   text-transform: uppercase;
 }
@@ -172,7 +186,7 @@ ion-content {
 }
 
 /* ── SCHEDULE ── */
-.schedule-block { margin: 12px 0 4px; }
+.schedule-block { margin: 8px 0 2px; }
 
 .schedule-toggle {
   display: flex;
@@ -192,6 +206,7 @@ ion-content {
   padding: 10px 12px;
   font-size: 13px;
   margin-top: 8px;
+  background: #f4f1f2;
   color: #1a050b;
 }
 
@@ -207,6 +222,28 @@ ion-content {
   border-radius: 10px;
   padding: 8px;
   margin-bottom: 12px;
+}
+
+.fare-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+
+  .fare-total {
+    font-size: 18px;
+    font-weight: 800;
+    color: #650015;
+  }
+}
+
+.fare-note {
+  font-size: 11.5px;
+  color: #888;
+  margin-bottom: 4px;
 }
 
 .action-row {
@@ -318,6 +355,23 @@ ion-content {
   overflow-y: auto;
 }
 
+/* Vehicle-selection sheet: a bit taller, with a sticky Book footer so the
+   button is always visible without scrolling through the vehicle list. */
+.select-sheet {
+  max-height: 86vh;
+}
+
+.sheet-footer {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  margin-top: 6px;
+  padding: 8px 0 calc(2px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 14px -8px rgba(0, 0, 0, 0.18);
+
+  .book-btn { margin-top: 0; }
+}
+
 .center-sheet {
   text-align: center;
 }
@@ -386,11 +440,11 @@ ion-content {
 
 /* ── VEHICLE SELECTION ── */
 .vehicle-categories {
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
 .vehicle-category {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .category-label {
@@ -399,7 +453,7 @@ ion-content {
   color: #650015;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  margin-bottom: 6px;
+  margin-bottom: 3px;
 }
 
 .vehicle-list {
@@ -411,10 +465,10 @@ ion-content {
 
 .vehicle-card {
   flex: 0 0 auto;
-  width: 92px;
+  width: 86px;
   border: 2px solid #eee;
   border-radius: 14px;
-  padding: 10px 6px;
+  padding: 7px 6px;
   text-align: center;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
@@ -436,8 +490,8 @@ ion-content {
 }
 
 .vehicle-icon {
-  font-size: 26px;
-  margin-bottom: 4px;
+  font-size: 22px;
+  margin-bottom: 2px;
 }
 
 .vehicle-icon.big {
@@ -495,6 +549,28 @@ ion-content {
   padding: 10px 0 2px;
   cursor: pointer;
   text-align: center;
+}
+
+/* Prominent, clearly-tappable cancel for an accepted ride (was an easy-to-miss
+   text link buried at the bottom of the sheet). */
+.cancel-ride-btn {
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid #e53935;
+  color: #e53935;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 13px;
+  border-radius: 14px;
+  margin-top: 12px;
+  cursor: pointer;
+}
+
+/* The accepted/started sheet packs a lot in (status, ETA, OTP, driver, trip,
+   actions, cancel). Give it more height so the Cancel button isn't pushed
+   below the fold on smaller phones. */
+.accepted-sheet {
+  max-height: 85vh;
 }
 
 /* ── NO RIDERS ── */
@@ -660,6 +736,8 @@ ion-content {
   min-height: 60px;
   margin-bottom: 10px;
   box-sizing: border-box;
+  background: #f4f1f2;
+  color: #1a050b;
 }
 
 .otp-box {

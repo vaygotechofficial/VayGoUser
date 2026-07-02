@@ -31,7 +31,9 @@
       <button class="menu-item" (click)="goTo('/places')">📍 Saved Places</button>
       <button class="menu-item" (click)="goTo('/referral')">🎁 Refer &amp; Earn</button>
       <button class="menu-item" (click)="goTo('/loyalty')">⭐ Loyalty Points</button>
-      <button class="menu-item" (click)="goTo('/safety')">🛡️ Safety &amp; Support</button>
+      <button class="menu-item" (click)="goTo('/support')">💬 Help &amp; Support</button>
+      <button class="menu-item" (click)="goTo('/safety')">🛡️ Safety &amp; SOS</button>
+      <p class="menu-version">Version {{ appVersion }}</p>
     </div>
 
     <!-- PICKUP / DROP SEARCH — always in DOM so Autocomplete refs stay valid -->
@@ -69,7 +71,7 @@
     </div>
 
     <!-- VEHICLE SELECTION + BOOK -->
-    <div class="sheet" *ngIf="state === 'selecting'">
+    <div class="sheet select-sheet" *ngIf="state === 'selecting'">
       <div class="sheet-handle"></div>
 
       <div class="addr-row">
@@ -145,6 +147,7 @@
           [(ngModel)]="scheduledTime" />
       </div>
 
+      <div class="sheet-footer">
       <button class="book-btn" [disabled]="!canBook || (scheduleEnabled && !scheduledTime)" (click)="bookRide()">
         <ng-container *ngIf="!selectedOption">Select a vehicle</ng-container>
         <ng-container *ngIf="selectedOption">
@@ -155,6 +158,7 @@
           <ng-container *ngIf="discountedFare === null">₹{{ selectedOption.estimatedFare }}</ng-container>
         </ng-container>
       </button>
+      </div>
     </div>
 
     <!-- SEARCHING -->
@@ -179,7 +183,7 @@
     </div>
 
     <!-- DRIVER ACCEPTED / STARTED -->
-    <div class="sheet" *ngIf="state === 'accepted' || state === 'started'">
+    <div class="sheet accepted-sheet" *ngIf="state === 'accepted' || state === 'started'">
       <div class="sheet-handle"></div>
 
       <div class="status-banner">{{ state === 'started' ? 'Ride in progress' : 'Driver is on the way' }}</div>
@@ -212,12 +216,21 @@
         </div>
       </div>
 
+      <div class="fare-summary" *ngIf="activeRide?.totalFare != null">
+        <span>Total fare</span>
+        <span class="fare-total">₹{{ activeRide?.totalFare }}</span>
+      </div>
+      <div class="fare-note" *ngIf="activeRide?.pickupCharge">
+        Ride ₹{{ activeRide?.rideCharge }} + pickup ₹{{ activeRide?.pickupCharge }} (driver &gt;1 km away)
+      </div>
+
       <div class="action-row">
-        <button class="action-btn" (click)="shareTrip()">📤 Share trip</button>
+        <button class="action-btn" (click)="shareTrip()">📤 Share</button>
+        <button class="action-btn" (click)="openChat()">💬 Chat</button>
         <button class="action-btn sos" (click)="triggerSos()">🆘 SOS</button>
       </div>
 
-      <button class="cancel-link" *ngIf="state === 'accepted'" (click)="cancelRide()">Cancel Ride</button>
+      <button class="cancel-ride-btn" *ngIf="state === 'accepted'" (click)="cancelRide()">Cancel Ride</button>
     </div>
 
     <!-- COMPLETED / RATING -->

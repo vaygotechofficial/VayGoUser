@@ -68,6 +68,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
   // ── menu / nav ──
   menuOpen = false;
+  appVersion = environment.appVersion;
 
   // ── saved places ──
   savedPlaces: any[] = [];
@@ -93,6 +94,8 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   private pickupMarker?: google.maps.Marker;
   private dropMarker?: google.maps.Marker;
   private driverMarker?: google.maps.Marker;
+  private driverLat: number | null = null;
+  private driverLng: number | null = null;
   private directionsRenderer?: google.maps.DirectionsRenderer;
   private pickupAutocomplete?: google.maps.places.Autocomplete;
   private dropAutocomplete?: google.maps.places.Autocomplete;
@@ -118,6 +121,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.subs.push(this.signalr.rideCompleted$.subscribe(d => this.onRideCompleted(d)));
     this.subs.push(this.signalr.rideCancelled$.subscribe(d => this.onRideCancelled(d)));
     this.subs.push(this.signalr.driverLocationUpdate$.subscribe(d => this.onDriverLocationUpdate(d)));
+    this.subs.push(this.signalr.searchRadiusUpdate$.subscribe(d => this.onSearchRadiusUpdate(d)));
 
     // Cache the canonical cancellation reasons for the action sheet
     this.api.get('ride/cancel-reasons').subscribe({
@@ -224,7 +228,11 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
       }
       if (this.drop) this.setDrop(this.drop.lat, this.drop.lng, this.drop.address);
       if (this.state === 'accepted' || this.state === 'started') {
-        this.drawRoute();
+        if (this.driverInfo?.currentLat != null && this.driverInfo?.currentLong != null) {
+          this.driverLat = Number(this.driverInfo.currentLat);
+          this.driverLng = Number(this.driverInfo.currentLong);
+        }
+        this.updateRoute();
         this.startEtaPolling();
       }
       return true;
@@ -442,18 +450,18 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.state = 'searching';
-    this.statusMessage = 'Searching for a nearby rider…';
+    this.statusMessage = 'Searching within 1 km…';
 
     this.api.post('ride/request', body).subscribe({
       next: (res) => {
         this.activeRide = res?.data;
-        if (!res?.data?.driverAssigned) {
-          this.state = 'noRiders';
-          this.statusMessage = 'No riders available at the moment. Please try again later.';
-        } else {
-          this.statusMessage = 'Rider found! Waiting for them to accept…';
-          this.saveActiveBooking();
-        }
+        // Stay in 'searching' regardless — the matcher progressively widens 1→2→3 km and a
+        // driver can accept at any point (even one coming online later). SearchRadiusUpdate
+        // refines the message; a driver accepting fires RideAccepted; a timeout fires RideCancelled.
+        this.statusMessage = res?.data?.driverAssigned
+          ? 'Rider found! Waiting for them to accept…'
+          : 'Searching within 1 km…';
+        this.saveActiveBooking();
       },
       error: (err) => {
         this.state = 'address';
@@ -588,9 +596,13 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     if (!this.activeRide || data?.rideId !== this.activeRide.rideId) return;
     this.activeRide = { ...this.activeRide, ...data };
     this.driverInfo = data.driver;
+    if (data.driver?.currentLat != null && data.driver?.currentLong != null) {
+      this.driverLat = Number(data.driver.currentLat);
+      this.driverLng = Number(data.driver.currentLong);
+    }
     this.state = 'accepted';
     this.statusMessage = `${data.driver?.fullName || 'A driver'} is on the way!`;
-    this.drawRoute();
+    this.updateRoute();   // driver → pickup
     this.startEtaPolling();
     this.saveActiveBooking();
   }
@@ -600,6 +612,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.activeRide.rideStatus = data.rideStatus;
     this.state = 'started';
     this.statusMessage = 'Your ride has started.';
+    this.updateRoute();   // pickup → drop
     this.saveActiveBooking();
   }
 
@@ -619,6 +632,16 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.statusMessage = data?.reason || 'Ride was cancelled.';
     this.stopEtaPolling();
     this.clearActiveBooking();
+  }
+
+  // Live search-radius updates while looking for a driver (1 km → 2 km → 3 km).
+  private onSearchRadiusUpdate(data: any) {
+    if (this.state !== 'searching' || !this.activeRide || data?.rideId !== this.activeRide.rideId) return;
+    this.ngZone.run(() => {
+      this.statusMessage = data?.exhausted
+        ? 'No riders within 3 km yet — still searching…'
+        : `Searching within ${data?.radiusKm ?? 1} km…`;
+    });
   }
 
   // ── ETA polling (every 15s while accepted/started) ──
@@ -652,6 +675,11 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     if (this.etaMinutes == null) return null;
     const who = this.state === 'started' ? 'Drop' : 'Driver';
     return `${who} ${this.etaMinutes} min away`;
+  }
+
+  // Open the in-ride chat with the assigned driver (keyed by ride id).
+  openChat() {
+    if (this.activeRide?.rideId) this.router.navigate(['/chat', this.activeRide.rideId]);
   }
 
   // ── Trip sharing ──
@@ -726,35 +754,71 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   private onDriverLocationUpdate(data: any) {
     if (!this.googleReady || !this.activeRide || data?.rideId !== this.activeRide.rideId) return;
 
+    this.driverLat = data.lat;
+    this.driverLng = data.lng;
+
+    // While the driver is heading to pickup, keep the approach route in sync with their movement.
+    if (this.state === 'accepted') this.updateRoute();
+
     const pos = { lat: data.lat, lng: data.lng };
     if (this.driverMarker) {
       this.driverMarker.setPosition(pos);
     } else {
+      // Show the ride's vehicle symbol (bike / auto / car…) as the moving driver marker,
+      // so the passenger sees their actual vehicle approaching the pickup point.
       this.driverMarker = new google.maps.Marker({
         position: pos,
         map: this.gmap,
         icon: {
-          url: 'assets/VayGoIcon.png',
-          scaledSize: new google.maps.Size(36, 36),
-          anchor: new google.maps.Point(18, 36)
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 16,
+          fillColor: '#ffffff',
+          fillOpacity: 1,
+          strokeColor: '#650015',
+          strokeWeight: 2
         },
-        title: 'Your driver'
+        label: {
+          text: this.iconFor(this.activeRide?.vehicleType || ''),
+          fontSize: '20px'
+        },
+        title: (this.activeRide?.vehicleType || 'Your driver') + ' • approaching pickup',
+        zIndex: 999
       });
     }
   }
 
-  private drawRoute() {
-    if (!this.googleReady || !this.gmap || !this.pickup || !this.drop) return;
-    this.clearRoute();
+  // Draw the route that matches the current ride stage:
+  //  - accepted (driver on the way) → driver's live location → pickup
+  //  - started  (trip in progress)  → pickup → drop
+  private updateRoute() {
+    if (!this.pickup) return;
+    if (this.state === 'accepted') {
+      if (this.driverLat != null && this.driverLng != null) {
+        this.drawRoute({ lat: this.driverLat, lng: this.driverLng },
+                       { lat: this.pickup.lat, lng: this.pickup.lng });
+      }
+    } else if (this.state === 'started') {
+      if (this.drop) {
+        this.drawRoute({ lat: this.pickup.lat, lng: this.pickup.lng },
+                       { lat: this.drop.lat, lng: this.drop.lng });
+      }
+    }
+  }
+
+  private drawRoute(from: { lat: number; lng: number }, to: { lat: number; lng: number }) {
+    if (!this.googleReady || !this.gmap) return;
     const ds = new google.maps.DirectionsService();
-    this.directionsRenderer = new google.maps.DirectionsRenderer({
-      map: this.gmap,
-      suppressMarkers: true,
-      polylineOptions: { strokeColor: '#650015', strokeWeight: 5, strokeOpacity: 0.8 }
-    });
+    // Reuse one renderer so the line updates smoothly (no flicker) as the driver moves.
+    if (!this.directionsRenderer) {
+      this.directionsRenderer = new google.maps.DirectionsRenderer({
+        map: this.gmap,
+        suppressMarkers: true,
+        polylineOptions: { strokeColor: '#650015', strokeWeight: 5, strokeOpacity: 0.8 }
+      });
+    }
     ds.route({
-      origin: { lat: this.pickup.lat, lng: this.pickup.lng },
-      destination: { lat: this.drop.lat, lng: this.drop.lng },
+      origin: from,
+      destination: to,
       travelMode: google.maps.TravelMode.DRIVING
     }, (result, status) => {
       if (status === 'OK') this.directionsRenderer!.setDirections(result);

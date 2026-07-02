@@ -6,6 +6,7 @@ import { IonContent, AlertController, ToastController } from '@ionic/angular/sta
 import { Geolocation } from '@capacitor/geolocation';
 import { ApiService } from '../services/api';
 import { getCurrentUserId } from '../services/signalr';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-safety',
@@ -105,7 +106,8 @@ export class SafetyPage implements OnInit {
       category: this.category,
       subject: this.subject.trim(),
       description: this.description.trim(),
-      userId: getCurrentUserId()
+      userId: getCurrentUserId(),
+      appVersion: environment.appVersion
     };
     if (this.activeRideId) body.rideId = this.activeRideId;
 

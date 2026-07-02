@@ -122,8 +122,25 @@ export class PushNotificationsService {
     );
   }
 
-  // Navigate based on the notification's data.type. Home reflects the current ride state.
+  // Route a notification tap to the screen that best matches its data.type.
   private handleTap(data: any): void {
-    this.router.navigateByUrl('/home');
+    const type = data?.type;
+
+    // Chat opens the specific ride's conversation.
+    if (type === 'ChatMessage' && data?.rideId) {
+      this.router.navigateByUrl('/chat/' + data.rideId);
+      return;
+    }
+
+    switch (type) {
+      case 'IssueUpdated':            // support replied to a complaint
+        this.router.navigateByUrl('/support');
+        return;
+      default:
+        // Ride lifecycle (RideAccepted, DriverArriving/Arrived, RideStarted, RideCompleted,
+        // RideCancelled, PaymentReceived, RatingReminder, Promotion, …) surfaces on home —
+        // which shows the matching live sheet (incl. the post-trip rating prompt).
+        this.router.navigateByUrl('/home');
+    }
   }
 }

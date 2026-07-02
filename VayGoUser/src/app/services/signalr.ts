@@ -20,6 +20,8 @@ export class SignalrService {
   driverLocationUpdate$ = new Subject<any>();
   rideStarted$ = new Subject<any>();
   rideCompleted$ = new Subject<any>();
+  chatMessage$ = new Subject<any>();
+  searchRadiusUpdate$ = new Subject<any>();
 
   connect(): void {
     if (this.hubConnection) return;
@@ -47,6 +49,8 @@ export class SignalrService {
     this.hubConnection.on('DriverLocationUpdate', (data) => this.driverLocationUpdate$.next(data));
     this.hubConnection.on('RideStarted', (data) => this.rideStarted$.next(data));
     this.hubConnection.on('RideCompleted', (data) => this.rideCompleted$.next(data));
+    this.hubConnection.on('ChatMessage', (data) => this.chatMessage$.next(data));
+    this.hubConnection.on('SearchRadiusUpdate', (data) => this.searchRadiusUpdate$.next(data));
 
     this.hubConnection.start().catch(err => console.error('SignalR connection error:', err));
   }

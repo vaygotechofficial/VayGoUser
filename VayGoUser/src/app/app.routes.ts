@@ -47,6 +47,14 @@ export const routes: Routes = [
     loadComponent: () => import('./safety/safety.page').then((m) => m.SafetyPage),
   },
   {
+    path: 'support',
+    loadComponent: () => import('./support/support.page').then((m) => m.SupportPage),
+  },
+  {
+    path: 'chat/:rideId',
+    loadComponent: () => import('./chat/chat.page').then((m) => m.ChatPage),
+  },
+  {
     path: 'places',
     loadComponent: () => import('./places/places.page').then((m) => m.PlacesPage),
   },
