@@ -147,6 +147,8 @@
           [(ngModel)]="scheduledTime" />
       </div>
 
+      <p class="pickup-note">ℹ️ A pickup charge may apply if your driver is more than 1 km away. You'll see the final fare once a driver accepts.</p>
+
       <div class="sheet-footer">
       <button class="book-btn" [disabled]="!canBook || (scheduleEnabled && !scheduledTime)" (click)="bookRide()">
         <ng-container *ngIf="!selectedOption">Select a vehicle</ng-container>
