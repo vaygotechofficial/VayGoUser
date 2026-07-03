@@ -350,11 +350,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
       this.pickupMarker = new google.maps.Marker({
         position: { lat, lng },
         map: this.gmap,
-        icon: {
-          url: 'assets/VayGoIcon.png',
-          scaledSize: new google.maps.Size(40, 40),
-          anchor: new google.maps.Point(20, 40)
-        },
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#2e7d32', fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 2 },
         title: 'Pickup'
       });
     }
@@ -390,14 +386,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
       this.dropMarker = new google.maps.Marker({
         position: { lat, lng },
         map: this.gmap,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 10,
-          fillColor: '#650015',
-          fillOpacity: 1,
-          strokeColor: '#fff',
-          strokeWeight: 3
-        },
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#e53935', fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 2 },
         title: 'Drop'
       });
     }
@@ -805,24 +794,12 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     if (this.driverMarker) {
       this.driverMarker.setPosition(pos);
     } else {
-      // Show the ride's vehicle symbol (bike / auto / car…) as the moving driver marker,
-      // so the passenger sees their actual vehicle approaching the pickup point.
+      // Blue dot for the moving driver position.
       this.driverMarker = new google.maps.Marker({
         position: pos,
         map: this.gmap,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 16,
-          fillColor: '#ffffff',
-          fillOpacity: 1,
-          strokeColor: '#650015',
-          strokeWeight: 2
-        },
-        label: {
-          text: this.iconFor(this.activeRide?.vehicleType || ''),
-          fontSize: '20px'
-        },
-        title: (this.activeRide?.vehicleType || 'Your driver') + ' • approaching pickup',
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 9, fillColor: '#1e88e5', fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 3 },
+        title: 'Your driver',
         zIndex: 999
       });
     }
