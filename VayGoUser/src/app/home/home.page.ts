@@ -6,6 +6,7 @@ import { IonContent } from '@ionic/angular/standalone';
 import { ActionSheetController, ToastController } from '@ionic/angular/standalone';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { Geolocation } from '@capacitor/geolocation';
+import { App } from '@capacitor/app';
 import { Subscription } from 'rxjs';
 import { ApiService } from '../services/api';
 import { SignalrService, getCurrentUserId } from '../services/signalr';
@@ -102,6 +103,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   private geocoder?: google.maps.Geocoder;
   private googleReady = false;
   private subs: Subscription[] = [];
+  private appResumeHandle?: { remove: () => Promise<void> };
 
   cancelReasons: string[] = [];
 
@@ -122,6 +124,9 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.subs.push(this.signalr.rideCancelled$.subscribe(d => this.onRideCancelled(d)));
     this.subs.push(this.signalr.driverLocationUpdate$.subscribe(d => this.onDriverLocationUpdate(d)));
     this.subs.push(this.signalr.searchRadiusUpdate$.subscribe(d => this.onSearchRadiusUpdate(d)));
+    this.subs.push(this.signalr.reconnected$.subscribe(() => this.syncActiveBooking()));
+    App.addListener('resume', () => this.ngZone.run(() => this.syncActiveBooking()))
+      .then(h => { this.appResumeHandle = h; });
 
     // Cache the canonical cancellation reasons for the action sheet
     this.api.get('ride/cancel-reasons').subscribe({
@@ -235,11 +240,47 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
         this.updateRoute();
         this.startEtaPolling();
       }
+      // Validate the restored ride against the server (it may have been cancelled/completed
+      // while the app was closed) so we don't show a stale "driver on the way" screen.
+      this.syncActiveBooking();
       return true;
     } catch {
       localStorage.removeItem('userActiveBooking');
       return false;
     }
+  }
+
+  // Reconcile the on-screen active ride with the server. Clears a stale active view if the
+  // ride is no longer active (e.g. cancelled while the app missed the realtime event).
+  private syncActiveBooking() {
+    const activeStates = ['searching', 'accepted', 'started'];
+    if (!activeStates.includes(this.state)) return;
+    this.api.get('ride/active', { userId: getCurrentUserId() }).subscribe({
+      next: (ride: any) => {
+        this.ngZone.run(() => {
+          const st = ride?.rideStatus;
+          if (st === 'Requested' || st === 'Accepted' || st === 'Started') {
+            // Still active — refresh from the server.
+            this.activeRide = { ...this.activeRide, ...ride };
+            if (ride.driver) this.driverInfo = ride.driver;
+            if (ride.driver?.currentLat != null && ride.driver?.currentLong != null) {
+              this.driverLat = Number(ride.driver.currentLat);
+              this.driverLng = Number(ride.driver.currentLong);
+            }
+            this.state = st === 'Accepted' ? 'accepted' : st === 'Started' ? 'started' : 'searching';
+            this.saveActiveBooking();
+            if (this.state === 'accepted' || this.state === 'started') this.updateRoute();
+          } else {
+            // Server has no active ride for us — the ride ended while we weren't listening.
+            this.stopEtaPolling();
+            this.clearActiveBooking();
+            this.state = 'cancelled';
+            this.statusMessage = 'This ride is no longer active.';
+          }
+        });
+      },
+      error: () => {}
+    });
   }
 
   private saveActiveBooking() {
@@ -833,6 +874,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.subs.forEach(s => s.unsubscribe());
     this.signalr.disconnect();
+    this.appResumeHandle?.remove();
     this.pickupAutocomplete?.unbindAll();
     this.dropAutocomplete?.unbindAll();
     this.clearRoute();
