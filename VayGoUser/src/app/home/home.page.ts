@@ -566,6 +566,78 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Is the current drop already in the saved list (~within a few metres)? Hides the save button.
+  isDropSaved(): boolean {
+    if (!this.drop) return false;
+    return this.savedPlaces.some(p => {
+      const plng = p.long ?? p.lng;
+      return Math.abs((p.lat ?? 0) - this.drop!.lat) < 0.0005 &&
+             Math.abs((plng ?? 0) - this.drop!.lng) < 0.0005;
+    });
+  }
+
+  // ── Save the chosen drop as a saved place (asks for type + label) ──
+  async saveCurrentDrop() {
+    if (!this.drop) return;
+    const alert = await this.alertCtrl.create({
+      header: 'Save this place',
+      inputs: [
+        { type: 'radio', label: 'Home',     value: 'Home' },
+        { type: 'radio', label: 'Work',     value: 'Work' },
+        { type: 'radio', label: 'Favorite', value: 'Favorite', checked: true }
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Next',
+          handler: (placeType: string) => { this.promptSaveLabel(placeType || 'Favorite'); }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private async promptSaveLabel(placeType: string) {
+    const alert = await this.alertCtrl.create({
+      header: 'Label',
+      message: placeType === 'Favorite' ? 'Give this place a name.' : `Save as your ${placeType} address.`,
+      inputs: [{ name: 'label', type: 'text', placeholder: 'e.g. Mom\'s house', value: placeType === 'Favorite' ? '' : placeType }],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Save',
+          handler: (data: any) => {
+            const label = (data?.label || '').trim() || placeType;
+            this.doSavePlace(placeType, label);
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private doSavePlace(placeType: string, label: string) {
+    if (!this.drop) return;
+    const body = {
+      placeType,
+      label,
+      address: this.drop.address,
+      lat: this.drop.lat,
+      long: this.drop.lng
+    };
+    this.api.post('places', body).subscribe({
+      next: async () => {
+        this.loadSavedPlaces();
+        const t = await this.toastCtrl.create({ message: 'Place saved.', duration: 1500, position: 'bottom' });
+        t.present();
+      },
+      error: async () => {
+        const t = await this.toastCtrl.create({ message: 'Could not save place.', duration: 2000, position: 'bottom', color: 'danger' });
+        t.present();
+      }
+    });
+  }
+
   // ── Promo code validation ──
   validatePromo() {
     const code = this.promoCode.trim();

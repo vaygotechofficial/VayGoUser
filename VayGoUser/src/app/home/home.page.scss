@@ -121,21 +121,49 @@ ion-content {
 }
 
 /* ── SAVED PLACE CHIPS ── */
-.saved-chips {
+/* ── Saved places list ── */
+.saved-list {
+  margin: 12px 0 4px;
+}
+.saved-list-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 6px;
+}
+.saved-item {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 10px 0 4px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.saved-item-icon { font-size: 20px; flex-shrink: 0; }
+.saved-item-text { display: flex; flex-direction: column; min-width: 0; }
+.saved-item-label { font-size: 14px; font-weight: 600; color: #222; }
+.saved-item-addr {
+  font-size: 11px; color: #999;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px;
 }
 
-.saved-chip {
-  background: rgba(101, 0, 21,0.08);
-  border: 1px solid rgba(101, 0, 21,0.2);
+.save-place-btn {
+  width: 100%;
+  margin-top: 4px;
+  padding: 11px;
+  border: 1px solid rgba(101, 0, 21, 0.3);
+  border-radius: 12px;
+  background: rgba(101, 0, 21, 0.06);
   color: #650015;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
-  border-radius: 16px;
-  padding: 6px 12px;
   cursor: pointer;
 }
 

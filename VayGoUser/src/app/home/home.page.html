@@ -60,12 +60,22 @@
         📍 Locate drop on map
       </button>
 
-      <div class="saved-chips" *ngIf="savedPlaces.length">
-        <button class="saved-chip" *ngFor="let place of savedPlaces" (click)="useSavedPlace(place)">
-          {{ place.placeType === 'Home' ? '🏠' : place.placeType === 'Work' ? '💼' : '⭐' }}
-          {{ place.label || place.placeType }}
+      <!-- Saved places as a list; tap to use as drop -->
+      <div class="saved-list" *ngIf="savedPlaces.length">
+        <div class="saved-list-title">Saved places</div>
+        <button class="saved-item" *ngFor="let place of savedPlaces" (click)="useSavedPlace(place)">
+          <span class="saved-item-icon">{{ place.placeType === 'Home' ? '🏠' : place.placeType === 'Work' ? '💼' : '⭐' }}</span>
+          <span class="saved-item-text">
+            <span class="saved-item-label">{{ place.label || place.placeType }}</span>
+            <span class="saved-item-addr">{{ place.address }}</span>
+          </span>
         </button>
       </div>
+
+      <!-- Save the chosen drop as a place -->
+      <button class="save-place-btn" type="button" *ngIf="drop && !isDropSaved()" (click)="saveCurrentDrop()">
+        ⭐ Save this place
+      </button>
 
       <div class="service-warning" *ngIf="pickup && !serviceable">
         🚫 {{ serviceMessage }}
