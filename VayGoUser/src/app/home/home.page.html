@@ -133,6 +133,7 @@
           <div class="vehicle-icon">{{ iconFor(option.vehicleType) }}</div>
           <div class="vehicle-name">{{ option.vehicleType }}</div>
           <div class="vehicle-fare">₹{{ (option.estimatedFare + option.maxPickupCharge) | number:'1.0-0' }}</div>
+          <div class="vehicle-fare-sub" *ngIf="option.maxPickupCharge">incl. pickup</div>
           <div class="vehicle-nearby">
             <ng-container *ngIf="option.availableNearby > 0">{{ option.etaMinutes }} min</ng-container>
             <ng-container *ngIf="option.availableNearby === 0">—</ng-container>
