@@ -494,7 +494,17 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
       dropLong: this.drop.lng
     }).subscribe({
       next: (res) => {
-        this.vehicleOptions = res || [];
+        // Show AVAILABLE vehicles first (a driver nearby), unavailable ones after — stable
+        // within each group so the server's ordering is otherwise preserved.
+        this.vehicleOptions = (res || []).slice().sort((a: VehicleOption, b: VehicleOption) => {
+          const aAvail = (a.availableNearby ?? 0) > 0 ? 0 : 1;
+          const bAvail = (b.availableNearby ?? 0) > 0 ? 0 : 1;
+          return aAvail - bAvail;
+        });
+        // Default-select the first available vehicle (fall back to the first) so the Book
+        // button isn't pre-set to an unavailable ride and the user sees a sensible default.
+        const firstAvail = this.vehicleOptions.find(o => (o.availableNearby ?? 0) > 0);
+        this.selectedVehicleType = (firstAvail ?? this.vehicleOptions[0])?.vehicleType || '';
         this.loadingOptions = false;
       },
       error: () => { this.loadingOptions = false; }
