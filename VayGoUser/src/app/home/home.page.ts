@@ -107,6 +107,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   private googleReady = false;
   private subs: Subscription[] = [];
   private appResumeHandle?: { remove: () => Promise<void> };
+  private backButtonSub?: Subscription;
 
   cancelReasons: string[] = [];
 
@@ -134,15 +135,9 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     App.addListener('resume', () => this.ngZone.run(() => this.syncActiveBooking()))
       .then(h => { this.appResumeHandle = h; });
 
-    // Hardware back on the home page: intercept with a HIGH priority so Ionic's default
-    // back navigation (which would pop to the OTP screen) does NOT run. We do not call the
-    // processNextHandler callback, so no navigation happens — just the logout prompt. On
-    // cancel the alert dismisses and the user stays on home.
-    this.subs.push(
-      this.platform.backButton.subscribeWithPriority(9999, () => {
-        this.ngZone.run(() => this.confirmLogout());
-      })
-    );
+    // NOTE: the hardware-back interceptor is registered in ionViewWillEnter and removed in
+    // ionViewWillLeave, so it only applies WHILE the home page is visible — other pages keep
+    // the default (native) back behaviour.
 
     // Cache the canonical cancellation reasons for the action sheet
     this.api.get('ride/cancel-reasons').subscribe({
@@ -159,6 +154,19 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   // during a previous booking — always show without needing an app restart.
   ionViewWillEnter() {
     this.loadSavedPlaces();
+
+    // Register the hardware-back interceptor ONLY while home is the visible page, so the
+    // logout prompt fires on home only; every other page keeps default native back.
+    // High priority + not calling the next handler suppresses Ionic's back navigation.
+    this.backButtonSub = this.platform.backButton.subscribeWithPriority(9999, () => {
+      this.ngZone.run(() => this.confirmLogout());
+    });
+  }
+
+  // Remove the interceptor when leaving home so back works normally elsewhere.
+  ionViewWillLeave() {
+    this.backButtonSub?.unsubscribe();
+    this.backButtonSub = undefined;
   }
 
   private loadSavedPlaces() {
