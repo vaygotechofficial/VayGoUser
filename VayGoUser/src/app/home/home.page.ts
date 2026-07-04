@@ -643,9 +643,9 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
   private async promptSaveLabel(placeType: string) {
     const alert = await this.alertCtrl.create({
-      header: 'Label',
-      message: placeType === 'Favorite' ? 'Give this place a name.' : `Save as your ${placeType} address.`,
-      inputs: [{ name: 'label', type: 'text', placeholder: 'e.g. Mom\'s house', value: placeType === 'Favorite' ? '' : placeType }],
+      header: 'Name this place',
+      message: 'You can save as many places as you like — give each one a name so it\'s easy to find.',
+      inputs: [{ name: 'label', type: 'text', placeholder: placeType === 'Favorite' ? 'e.g. Mom\'s house' : 'e.g. ' + placeType + ' 2', value: '' }],
       buttons: [
         { text: 'Cancel', role: 'cancel' },
         {
