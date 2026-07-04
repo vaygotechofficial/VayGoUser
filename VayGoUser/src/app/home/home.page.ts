@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, NgZ
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonContent } from '@ionic/angular/standalone';
+import { IonContent, Platform } from '@ionic/angular/standalone';
 import { ActionSheetController, ToastController, AlertController } from '@ionic/angular/standalone';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { Geolocation } from '@capacitor/geolocation';
@@ -75,6 +75,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
   // ── saved places ──
   savedPlaces: any[] = [];
+  savedOpen = false;   // collapsible "Saved places" section; collapsed by default
 
   // ── scheduling ──
   scheduleEnabled = false;
@@ -106,7 +107,6 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   private googleReady = false;
   private subs: Subscription[] = [];
   private appResumeHandle?: { remove: () => Promise<void> };
-  private backButtonHandle?: { remove: () => Promise<void> };
 
   cancelReasons: string[] = [];
 
@@ -118,7 +118,8 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
-    private auth: AuthService
+    private auth: AuthService,
+    private platform: Platform
   ) {}
 
   ngOnInit() {
@@ -133,10 +134,15 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     App.addListener('resume', () => this.ngZone.run(() => this.syncActiveBooking()))
       .then(h => { this.appResumeHandle = h; });
 
-    // Hardware back on the home page: don't leave / exit the app. Ask to log out; if
-    // they cancel, stay put. (Home is the app root, so the default back would exit.)
-    App.addListener('backButton', () => this.ngZone.run(() => this.confirmLogout()))
-      .then(h => { this.backButtonHandle = h; });
+    // Hardware back on the home page: intercept with a HIGH priority so Ionic's default
+    // back navigation (which would pop to the OTP screen) does NOT run. We do not call the
+    // processNextHandler callback, so no navigation happens — just the logout prompt. On
+    // cancel the alert dismisses and the user stays on home.
+    this.subs.push(
+      this.platform.backButton.subscribeWithPriority(9999, () => {
+        this.ngZone.run(() => this.confirmLogout());
+      })
+    );
 
     // Cache the canonical cancellation reasons for the action sheet
     this.api.get('ride/cancel-reasons').subscribe({
@@ -146,6 +152,13 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
     this.loadSavedPlaces();
     this.loadOffers();
+  }
+
+  // Fires every time the home page is navigated to (Ionic keeps pages alive, so ngOnInit
+  // runs only once). Reload saved places so ones added on the Places screen — or saved
+  // during a previous booking — always show without needing an app restart.
+  ionViewWillEnter() {
+    this.loadSavedPlaces();
   }
 
   private loadSavedPlaces() {
@@ -567,6 +580,8 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     // If we're already on the vehicle-selection step, changing the drop must refresh
     // fares/availability for the new destination.
     if (this.state === 'selecting') this.fetchVehicleOptions();
+    // Collapse the saved-places accordion once a place is chosen.
+    this.savedOpen = false;
   }
 
   // Is the current drop already in the saved list (~within a few metres)? Hides the save button.
@@ -981,7 +996,6 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
     this.signalr.disconnect();
     this.appResumeHandle?.remove();
-    this.backButtonHandle?.remove();
     this.pickupAutocomplete?.unbindAll();
     this.dropAutocomplete?.unbindAll();
     this.clearRoute();

@@ -60,18 +60,6 @@
         📍 Locate drop on map
       </button>
 
-      <!-- Saved places as a list; tap to use as drop -->
-      <div class="saved-list" *ngIf="savedPlaces.length">
-        <div class="saved-list-title">Saved places</div>
-        <button class="saved-item" *ngFor="let place of savedPlaces" (click)="useSavedPlace(place)">
-          <span class="saved-item-icon">{{ place.placeType === 'Home' ? '🏠' : place.placeType === 'Work' ? '💼' : '⭐' }}</span>
-          <span class="saved-item-text">
-            <span class="saved-item-label">{{ place.label || place.placeType }}</span>
-            <span class="saved-item-addr">{{ place.address }}</span>
-          </span>
-        </button>
-      </div>
-
       <!-- Save the chosen drop as a place -->
       <button class="save-place-btn" type="button" *ngIf="drop && !isDropSaved()" (click)="saveCurrentDrop()">
         ⭐ Save this place
@@ -82,6 +70,23 @@
       </div>
 
       <button class="book-btn" [disabled]="!pickup || !drop || !serviceable" (click)="confirmLocations()">Find Rides</button>
+
+      <!-- Saved places: collapsible section below Find Rides -->
+      <div class="saved-section" *ngIf="savedPlaces.length">
+        <button class="saved-header" type="button" (click)="savedOpen = !savedOpen" [attr.aria-expanded]="savedOpen">
+          <span>Saved places</span>
+          <span class="saved-arrow" [class.open]="savedOpen">▼</span>
+        </button>
+        <div class="saved-scroll" *ngIf="savedOpen">
+          <button class="saved-item" *ngFor="let place of savedPlaces" (click)="useSavedPlace(place)">
+            <span class="saved-item-icon">{{ place.placeType === 'Home' ? '🏠' : place.placeType === 'Work' ? '💼' : '⭐' }}</span>
+            <span class="saved-item-text">
+              <span class="saved-item-label">{{ place.label || place.placeType }}</span>
+              <span class="saved-item-addr">{{ place.address }}</span>
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- LOCATE DROP ON MAP (center-pin) -->

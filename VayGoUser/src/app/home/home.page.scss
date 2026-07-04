@@ -122,16 +122,37 @@ ion-content {
 
 /* ── SAVED PLACE CHIPS ── */
 /* ── Saved places list ── */
-.saved-list {
-  margin: 12px 0 4px;
+/* Collapsible "Saved places" section (below Find Rides) */
+.saved-section {
+  margin-top: 12px;
+  border-top: 1px solid #eee;
+  padding-top: 8px;
 }
-.saved-list-title {
-  font-size: 12px;
+.saved-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 2px;
+  font-size: 13px;
   font-weight: 700;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  margin-bottom: 6px;
+  color: #650015;
+  cursor: pointer;
+}
+.saved-arrow {
+  font-size: 11px;
+  transition: transform .2s ease;
+}
+.saved-arrow.open {
+  transform: rotate(180deg);
+}
+.saved-scroll {
+  max-height: 200px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 4px;
 }
 .saved-item {
   display: flex;
