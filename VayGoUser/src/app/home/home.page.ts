@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular/standalone';
-import { ActionSheetController, ToastController } from '@ionic/angular/standalone';
+import { ActionSheetController, ToastController, AlertController } from '@ionic/angular/standalone';
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 import { Geolocation } from '@capacitor/geolocation';
 import { App } from '@capacitor/app';
 import { Subscription } from 'rxjs';
 import { ApiService } from '../services/api';
 import { SignalrService, getCurrentUserId } from '../services/signalr';
+import { AuthService } from '../services/auth.service';
 import { environment } from 'src/environments/environment';
 
 interface VehicleOption {
@@ -105,6 +106,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   private googleReady = false;
   private subs: Subscription[] = [];
   private appResumeHandle?: { remove: () => Promise<void> };
+  private backButtonHandle?: { remove: () => Promise<void> };
 
   cancelReasons: string[] = [];
 
@@ -114,7 +116,9 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     private ngZone: NgZone,
     private actionSheetCtrl: ActionSheetController,
     private router: Router,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController,
+    private auth: AuthService
   ) {}
 
   ngOnInit() {
@@ -128,6 +132,11 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.subs.push(this.signalr.reconnected$.subscribe(() => this.syncActiveBooking()));
     App.addListener('resume', () => this.ngZone.run(() => this.syncActiveBooking()))
       .then(h => { this.appResumeHandle = h; });
+
+    // Hardware back on the home page: don't leave / exit the app. Ask to log out; if
+    // they cancel, stay put. (Home is the app root, so the default back would exit.)
+    App.addListener('backButton', () => this.ngZone.run(() => this.confirmLogout()))
+      .then(h => { this.backButtonHandle = h; });
 
     // Cache the canonical cancellation reasons for the action sheet
     this.api.get('ride/cancel-reasons').subscribe({
@@ -391,6 +400,50 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
         title: 'Drop'
       });
     }
+  }
+
+  // ── Locate drop on map (center-pin) ──────────────────────────────────────
+  // Enter a mode where a fixed pin sits at the map centre; the user pans the map
+  // under it and confirms. The chosen centre is reverse-geocoded into the drop.
+  pickingDrop = false;
+
+  startPickDropOnMap() {
+    this.pickingDrop = true;
+    // Center on the current drop if set, else pickup, else leave as-is.
+    const focus = this.drop ?? this.pickup;
+    if (focus) {
+      this.gmap.setCenter({ lat: focus.lat, lng: focus.lng });
+      this.gmap.setZoom(environment.mapZoom);
+    }
+  }
+
+  cancelPickDrop() {
+    this.pickingDrop = false;
+  }
+
+  confirmPickDrop() {
+    const c = this.gmap.getCenter();
+    if (!c) { this.pickingDrop = false; return; }
+    const lat = c.lat();
+    const lng = c.lng();
+
+    // Reverse-geocode for a human label; set the drop immediately either way so a
+    // geocoder hiccup never blocks the booking (coords are what actually matter).
+    const fallback = `Pinned location (${lat.toFixed(5)}, ${lng.toFixed(5)})`;
+    this.setDrop(lat, lng, fallback);
+    if (this.dropInputRef?.nativeElement) this.dropInputRef.nativeElement.value = fallback;
+
+    new google.maps.Geocoder().geocode({ location: { lat, lng } }, (results, status) => {
+      this.ngZone.run(() => {
+        if (status === 'OK' && results && results[0]) {
+          const address = results[0].formatted_address;
+          this.setDrop(lat, lng, address);
+          if (this.dropInputRef?.nativeElement) this.dropInputRef.nativeElement.value = address;
+        }
+      });
+    });
+
+    this.pickingDrop = false;
   }
 
   confirmLocations() {
@@ -853,9 +906,31 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
     this.signalr.disconnect();
     this.appResumeHandle?.remove();
+    this.backButtonHandle?.remove();
     this.pickupAutocomplete?.unbindAll();
     this.dropAutocomplete?.unbindAll();
     this.clearRoute();
     this.stopEtaPolling();
+  }
+
+  // Hardware back / any logout entry point: confirm, then clear the session and return to login.
+  // On cancel, the alert dismisses and the user stays on the home page.
+  async confirmLogout() {
+    const alert = await this.alertCtrl.create({
+      header: 'Log out?',
+      message: 'Do you want to log out of VayGo?',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        { text: 'Log out', role: 'destructive', handler: () => this.logout() }
+      ]
+    });
+    await alert.present();
+  }
+
+  logout() {
+    this.subs.forEach(s => s.unsubscribe());
+    this.signalr.disconnect();
+    this.auth.logout();               // clears token / userId / userData
+    this.router.navigate(['/login']);
   }
 }

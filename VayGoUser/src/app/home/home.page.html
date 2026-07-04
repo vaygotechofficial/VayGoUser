@@ -37,7 +37,7 @@
     </div>
 
     <!-- PICKUP / DROP SEARCH — always in DOM so Autocomplete refs stay valid -->
-    <div class="search-panel" [hidden]="state !== 'address'">
+    <div class="search-panel" [hidden]="state !== 'address' || pickingDrop">
       <div class="search-row">
         <div class="addr-dot pickup-dot"></div>
         <input
@@ -56,6 +56,10 @@
           autocomplete="off" />
       </div>
 
+      <button class="locate-map-btn" type="button" (click)="startPickDropOnMap()">
+        📍 Locate drop on map
+      </button>
+
       <div class="saved-chips" *ngIf="savedPlaces.length">
         <button class="saved-chip" *ngFor="let place of savedPlaces" (click)="useSavedPlace(place)">
           {{ place.placeType === 'Home' ? '🏠' : place.placeType === 'Work' ? '💼' : '⭐' }}
@@ -68,6 +72,16 @@
       </div>
 
       <button class="book-btn" [disabled]="!pickup || !drop || !serviceable" (click)="confirmLocations()">Find Rides</button>
+    </div>
+
+    <!-- LOCATE DROP ON MAP (center-pin) -->
+    <div class="drop-picker" *ngIf="pickingDrop">
+      <div class="drop-picker-hint">Move the map to set your drop</div>
+      <div class="drop-picker-pin" aria-hidden="true">📍</div>
+      <div class="drop-picker-bar">
+        <button class="drop-picker-cancel" type="button" (click)="cancelPickDrop()">Cancel</button>
+        <button class="drop-picker-confirm" type="button" (click)="confirmPickDrop()">Confirm drop</button>
+      </div>
     </div>
 
     <!-- VEHICLE SELECTION + BOOK -->
@@ -101,8 +115,8 @@
               (click)="selectVehicle(option.vehicleType)">
               <div class="vehicle-icon">{{ iconFor(option.vehicleType) }}</div>
               <div class="vehicle-name">{{ option.vehicleType }}</div>
-              <div class="vehicle-fare">up to ₹{{ option.estimatedFare + option.maxPickupCharge }}</div>
-              <div class="vehicle-fare-sub">incl. up to ₹{{ option.maxPickupCharge }} pickup</div>
+              <div class="vehicle-fare">up to ₹{{ (option.estimatedFare + option.maxPickupCharge) | number:'1.0-0' }}</div>
+              <div class="vehicle-fare-sub">incl. up to ₹{{ option.maxPickupCharge | number:'1.0-0' }} pickup</div>
               <div class="vehicle-nearby">
                 <ng-container *ngIf="option.availableNearby > 0">
                   {{ option.availableNearby }} nearby · {{ option.etaMinutes }} min
@@ -148,7 +162,7 @@
           [(ngModel)]="scheduledTime" />
       </div>
 
-      <p class="pickup-note">ℹ️ A pickup charge (up to ₹{{ selectedOption?.maxPickupCharge ?? 0 }}) applies if your driver is 1–3 km away. You'll see the final fare once a driver accepts.</p>
+      <p class="pickup-note">ℹ️ A pickup charge (up to ₹{{ (selectedOption?.maxPickupCharge ?? 0) | number:'1.0-0' }}) applies if your driver is 1–3 km away. You'll see the final fare once a driver accepts.</p>
 
       <div class="sheet-footer">
       <button class="book-btn" [disabled]="!canBook || (scheduleEnabled && !scheduledTime)" (click)="bookRide()">
@@ -156,9 +170,9 @@
         <ng-container *ngIf="selectedOption">
           {{ scheduleEnabled ? 'Schedule ' : 'Book ' }}{{ selectedOption.vehicleType }} • up to
           <ng-container *ngIf="discountedFare !== null">
-            <span class="strike">₹{{ selectedOption.estimatedFare + selectedOption.maxPickupCharge }}</span> ₹{{ discountedFare + selectedOption.maxPickupCharge }}
+            <span class="strike">₹{{ (selectedOption.estimatedFare + selectedOption.maxPickupCharge) | number:'1.0-0' }}</span> ₹{{ (discountedFare + selectedOption.maxPickupCharge) | number:'1.0-0' }}
           </ng-container>
-          <ng-container *ngIf="discountedFare === null">₹{{ selectedOption.estimatedFare + selectedOption.maxPickupCharge }}</ng-container>
+          <ng-container *ngIf="discountedFare === null">₹{{ (selectedOption.estimatedFare + selectedOption.maxPickupCharge) | number:'1.0-0' }}</ng-container>
         </ng-container>
       </button>
       </div>
@@ -221,10 +235,10 @@
 
       <div class="fare-summary" *ngIf="activeRide?.totalFare != null">
         <span>Total fare</span>
-        <span class="fare-total">₹{{ activeRide?.totalFare }}</span>
+        <span class="fare-total">₹{{ activeRide?.totalFare | number:'1.0-0' }}</span>
       </div>
       <div class="fare-note" *ngIf="activeRide?.pickupCharge">
-        Ride ₹{{ activeRide?.rideCharge }} + pickup ₹{{ activeRide?.pickupCharge }} (driver &gt;1 km away)
+        Ride ₹{{ activeRide?.rideCharge | number:'1.0-2' }} + pickup ₹{{ activeRide?.pickupCharge | number:'1.0-2' }} (driver 1–3 km away)
       </div>
 
       <div class="action-row">
@@ -243,7 +257,7 @@
 
       <div class="fare-row">
         <span>Total Fare</span>
-        <span class="fare-amount">₹{{ activeRide?.finalFare || activeRide?.estimatedFare }}</span>
+        <span class="fare-amount">₹{{ (activeRide?.finalFare || activeRide?.estimatedFare) | number:'1.0-0' }}</span>
       </div>
 
       <p class="rate-label">Rate your trip with {{ driverInfo?.fullName || 'driver' }}</p>
