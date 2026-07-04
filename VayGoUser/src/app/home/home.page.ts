@@ -15,7 +15,8 @@ import { environment } from 'src/environments/environment';
 interface VehicleOption {
   category: string;
   vehicleType: string;
-  estimatedFare: number;
+  estimatedFare: number;    // trip fare only (pickup -> drop)
+  maxPickupCharge: number;  // worst-case pickup add-on (PickupMaxKm * rate); actual set on driver accept
   availableNearby: number;
   etaMinutes: number;
 }

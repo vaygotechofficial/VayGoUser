@@ -101,7 +101,8 @@
               (click)="selectVehicle(option.vehicleType)">
               <div class="vehicle-icon">{{ iconFor(option.vehicleType) }}</div>
               <div class="vehicle-name">{{ option.vehicleType }}</div>
-              <div class="vehicle-fare">₹{{ option.estimatedFare }}</div>
+              <div class="vehicle-fare">up to ₹{{ option.estimatedFare + option.maxPickupCharge }}</div>
+              <div class="vehicle-fare-sub">incl. up to ₹{{ option.maxPickupCharge }} pickup</div>
               <div class="vehicle-nearby">
                 <ng-container *ngIf="option.availableNearby > 0">
                   {{ option.availableNearby }} nearby · {{ option.etaMinutes }} min
@@ -147,17 +148,17 @@
           [(ngModel)]="scheduledTime" />
       </div>
 
-      <p class="pickup-note">ℹ️ A pickup charge may apply if your driver is more than 1 km away. You'll see the final fare once a driver accepts.</p>
+      <p class="pickup-note">ℹ️ A pickup charge (up to ₹{{ selectedOption?.maxPickupCharge ?? 0 }}) applies if your driver is 1–3 km away. You'll see the final fare once a driver accepts.</p>
 
       <div class="sheet-footer">
       <button class="book-btn" [disabled]="!canBook || (scheduleEnabled && !scheduledTime)" (click)="bookRide()">
         <ng-container *ngIf="!selectedOption">Select a vehicle</ng-container>
         <ng-container *ngIf="selectedOption">
-          {{ scheduleEnabled ? 'Schedule ' : 'Book ' }}{{ selectedOption.vehicleType }} •
+          {{ scheduleEnabled ? 'Schedule ' : 'Book ' }}{{ selectedOption.vehicleType }} • up to
           <ng-container *ngIf="discountedFare !== null">
-            <span class="strike">₹{{ selectedOption.estimatedFare }}</span> ₹{{ discountedFare }}
+            <span class="strike">₹{{ selectedOption.estimatedFare + selectedOption.maxPickupCharge }}</span> ₹{{ discountedFare + selectedOption.maxPickupCharge }}
           </ng-container>
-          <ng-container *ngIf="discountedFare === null">₹{{ selectedOption.estimatedFare }}</ng-container>
+          <ng-container *ngIf="discountedFare === null">₹{{ selectedOption.estimatedFare + selectedOption.maxPickupCharge }}</ng-container>
         </ng-container>
       </button>
       </div>
