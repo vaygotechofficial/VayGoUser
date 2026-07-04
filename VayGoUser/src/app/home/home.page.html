@@ -111,16 +111,10 @@
         <div class="addr-dot drop-dot"></div>
         <div class="addr-text">{{ drop?.address }}</div>
       </div>
-      <button class="edit-link" (click)="editLocations()">Edit locations</button>
-
-      <!-- Saved places, available while booking: tap to switch the drop -->
-      <div class="saved-row" *ngIf="savedPlaces.length">
-        <button class="saved-pill" *ngFor="let place of savedPlaces" (click)="useSavedPlace(place)"
-          [class.active]="drop && place.address === drop.address">
-          {{ place.placeType === 'Home' ? '🏠' : place.placeType === 'Work' ? '💼' : '⭐' }}
-          {{ place.label || place.placeType }}
-        </button>
-      </div>
+      <button class="edit-btn" (click)="editLocations()">
+        <span class="edit-btn-icon">✏️</span>
+        <span>Edit locations</span>
+      </button>
 
       <div class="loading-row" *ngIf="loadingOptions">
         <div class="pulse-dot"></div>
@@ -145,6 +139,9 @@
           </div>
         </button>
       </div>
+
+      <!-- PICKUP CHARGE (highlighted, above promo) -->
+      <p class="pickup-note pickup-note-hl">ℹ️ A pickup charge (up to ₹{{ (selectedOption?.maxPickupCharge ?? 0) | number:'1.0-0' }}) applies if your driver is 1–3 km away. You'll see the final fare once a driver accepts.</p>
 
       <!-- PROMO CODE -->
       <div class="promo-block">
@@ -179,8 +176,6 @@
           type="datetime-local"
           [(ngModel)]="scheduledTime" />
       </div>
-
-      <p class="pickup-note">ℹ️ A pickup charge (up to ₹{{ (selectedOption?.maxPickupCharge ?? 0) | number:'1.0-0' }}) applies if your driver is 1–3 km away. You'll see the final fare once a driver accepts.</p>
 
       <div class="sheet-footer">
       <button class="book-btn" [disabled]="!canBook || (scheduleEnabled && !scheduledTime)" (click)="bookRide()">
