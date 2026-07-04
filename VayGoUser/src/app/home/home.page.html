@@ -108,6 +108,15 @@
       </div>
       <button class="edit-link" (click)="editLocations()">Edit locations</button>
 
+      <!-- Saved places, available while booking: tap to switch the drop -->
+      <div class="saved-row" *ngIf="savedPlaces.length">
+        <button class="saved-pill" *ngFor="let place of savedPlaces" (click)="useSavedPlace(place)"
+          [class.active]="drop && place.address === drop.address">
+          {{ place.placeType === 'Home' ? '🏠' : place.placeType === 'Work' ? '💼' : '⭐' }}
+          {{ place.label || place.placeType }}
+        </button>
+      </div>
+
       <div class="loading-row" *ngIf="loadingOptions">
         <div class="pulse-dot"></div>
         <span>Loading vehicle options...</span>

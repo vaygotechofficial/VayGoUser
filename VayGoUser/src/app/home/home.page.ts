@@ -564,6 +564,9 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
       this.gmap.setCenter({ lat: place.lat, lng });
       this.gmap.setZoom(environment.mapZoom);
     }
+    // If we're already on the vehicle-selection step, changing the drop must refresh
+    // fares/availability for the new destination.
+    if (this.state === 'selecting') this.fetchVehicleOptions();
   }
 
   // Is the current drop already in the saved list (~within a few metres)? Hides the save button.
