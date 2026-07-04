@@ -57,9 +57,12 @@ ion-content {
 }
 
 .header-logo {
-  height: 32px;
+  height: 34px;
   object-fit: contain;
+  pointer-events: none;
 }
+
+.header-spacer { flex: 1; }
 
 /* ── SIDE MENU ── */
 .menu-overlay {
@@ -549,14 +552,27 @@ ion-content {
   padding-bottom: 4px;
 }
 
+/* Single flat horizontal row of all ride types */
+.vehicle-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 6px 0 8px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+}
+.vehicle-strip::-webkit-scrollbar { display: none; }
+
 .vehicle-card {
   flex: 0 0 auto;
-  width: 86px;
+  width: 84px;
+  background: #fff;
   border: 2px solid #eee;
   border-radius: 14px;
-  padding: 7px 6px;
+  padding: 8px 6px;
   text-align: center;
   cursor: pointer;
+  scroll-snap-align: start;
   transition: border-color 0.2s, background 0.2s;
 }
 

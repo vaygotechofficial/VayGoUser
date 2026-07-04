@@ -592,13 +592,21 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.savedOpen = false;
   }
 
-  // Is the current drop already in the saved list (~within a few metres)? Hides the save button.
+  // Address of the drop we just saved this session — hides the button immediately without
+  // waiting on the reload / coordinate-precision matching.
+  private lastSavedDropAddress = '';
+
+  // Is the current drop already saved? Match on address first (exact string we sent), then
+  // fall back to a coordinate proximity check. Address match avoids the decimal-rounding
+  // mismatch that used to leave the button showing after a successful save.
   isDropSaved(): boolean {
     if (!this.drop) return false;
+    if (this.drop.address && this.drop.address === this.lastSavedDropAddress) return true;
     return this.savedPlaces.some(p => {
+      if (p.address && this.drop!.address && p.address === this.drop!.address) return true;
       const plng = p.long ?? p.lng;
-      return Math.abs((p.lat ?? 0) - this.drop!.lat) < 0.0005 &&
-             Math.abs((plng ?? 0) - this.drop!.lng) < 0.0005;
+      return Math.abs((p.lat ?? 0) - this.drop!.lat) < 0.0015 &&
+             Math.abs((plng ?? 0) - this.drop!.lng) < 0.0015;
     });
   }
 
@@ -653,7 +661,9 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     };
     this.api.post('places', body).subscribe({
       next: async () => {
-        this.loadSavedPlaces();
+        this.lastSavedDropAddress = this.drop?.address || '';  // hide the button immediately
+        this.loadSavedPlaces();                                 // refresh the list
+        this.savedOpen = true;                                  // open the accordion so they see it land
         const t = await this.toastCtrl.create({ message: 'Place saved.', duration: 1500, position: 'bottom' });
         t.present();
       },

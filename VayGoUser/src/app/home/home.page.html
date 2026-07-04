@@ -15,11 +15,11 @@
       <div id="map"></div>
     </div>
 
-    <!-- HEADER -->
+    <!-- HEADER: logo left, menu right -->
     <div class="header">
-      <button class="menu-btn" (click)="toggleMenu()">☰</button>
       <img src="assets/VayGoLogoWhite.png" class="header-logo" alt="VayGo" />
-      <div class="header-title">Book a Ride</div>
+      <div class="header-spacer"></div>
+      <button class="menu-btn" (click)="toggleMenu()">☰</button>
     </div>
 
     <!-- SLIDE-OUT MENU -->
@@ -127,29 +127,23 @@
         <span>Loading vehicle options...</span>
       </div>
 
-      <div class="vehicle-categories" *ngIf="!loadingOptions && vehicleOptions.length">
-        <div class="vehicle-category" *ngFor="let category of categories">
-          <div class="category-label">{{ category }}</div>
-          <div class="vehicle-list">
-            <div
-              class="vehicle-card"
-              *ngFor="let option of optionsFor(category)"
-              [class.selected]="selectedVehicleType === option.vehicleType"
-              [class.unavailable]="option.availableNearby === 0"
-              (click)="selectVehicle(option.vehicleType)">
-              <div class="vehicle-icon">{{ iconFor(option.vehicleType) }}</div>
-              <div class="vehicle-name">{{ option.vehicleType }}</div>
-              <div class="vehicle-fare">up to ₹{{ (option.estimatedFare + option.maxPickupCharge) | number:'1.0-0' }}</div>
-              <div class="vehicle-fare-sub">incl. up to ₹{{ option.maxPickupCharge | number:'1.0-0' }} pickup</div>
-              <div class="vehicle-nearby">
-                <ng-container *ngIf="option.availableNearby > 0">
-                  {{ option.availableNearby }} nearby · {{ option.etaMinutes }} min
-                </ng-container>
-                <ng-container *ngIf="option.availableNearby === 0">None nearby</ng-container>
-              </div>
-            </div>
+      <!-- All ride types in ONE horizontal scrolling row (compact; no per-category stacking) -->
+      <div class="vehicle-strip" *ngIf="!loadingOptions && vehicleOptions.length">
+        <button
+          type="button"
+          class="vehicle-card"
+          *ngFor="let option of vehicleOptions"
+          [class.selected]="selectedVehicleType === option.vehicleType"
+          [class.unavailable]="option.availableNearby === 0"
+          (click)="selectVehicle(option.vehicleType)">
+          <div class="vehicle-icon">{{ iconFor(option.vehicleType) }}</div>
+          <div class="vehicle-name">{{ option.vehicleType }}</div>
+          <div class="vehicle-fare">₹{{ (option.estimatedFare + option.maxPickupCharge) | number:'1.0-0' }}</div>
+          <div class="vehicle-nearby">
+            <ng-container *ngIf="option.availableNearby > 0">{{ option.etaMinutes }} min</ng-container>
+            <ng-container *ngIf="option.availableNearby === 0">—</ng-container>
           </div>
-        </div>
+        </button>
       </div>
 
       <!-- PROMO CODE -->
