@@ -573,8 +573,8 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
         // Stay in 'searching' regardless — the matcher progressively widens 1→2→3 km and a
         // driver can accept at any point (even one coming online later). SearchRadiusUpdate
         // refines the message; a driver accepting fires RideAccepted; a timeout fires RideCancelled.
-        this.statusMessage = res?.data?.driverAssigned
-          ? 'Rider found! Waiting for them to accept…'
+        this.statusMessage = (res?.data?.offersSent ?? 0) > 0
+          ? 'Notifying nearby riders… waiting for one to accept'
           : 'Searching within 1 km…';
         this.saveActiveBooking();
       },

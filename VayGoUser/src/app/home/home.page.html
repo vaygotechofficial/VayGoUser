@@ -221,8 +221,9 @@
 
       <div class="eta-banner" *ngIf="etaLabel">⏱ {{ etaLabel }}</div>
 
-      <!-- OTP code — passenger shows this to the rider to start the trip -->
-      <div class="otp-box">
+      <!-- OTP code — passenger shows this to the rider to start the trip.
+           Hidden once the ride has started (rider already entered it). -->
+      <div class="otp-box" *ngIf="state === 'accepted'">
         <p class="otp-box-label">Show this code to your rider</p>
         <div class="otp-digits">{{ activeRide?.rideOtp || activeRide?.rideNumber?.slice(-4) }}</div>
       </div>
