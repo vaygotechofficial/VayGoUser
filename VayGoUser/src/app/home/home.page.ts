@@ -80,6 +80,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   // ── scheduling ──
   scheduleEnabled = false;
   scheduledTime = '';
+  scheduling = false;   // true while a scheduled-ride POST is in flight (guards double-tap)
 
   // ── promo ──
   promoCode = '';
@@ -533,6 +534,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
   bookRide() {
     if (!this.canBook || !this.pickup || !this.drop || !this.selectedVehicleType) return;
+    if (this.scheduling) return;   // a scheduled-ride request is already in flight
 
     const body: any = {
       pickupLat: this.pickup.lat,
@@ -551,13 +553,16 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     // Scheduled ride: send scheduledTime and route to the scheduled list instead of searching.
     if (this.scheduleEnabled && this.scheduledTime) {
       body.scheduledTime = new Date(this.scheduledTime).toISOString();
+      this.scheduling = true;
       this.api.post('ride/request', body).subscribe({
         next: () => {
+          this.scheduling = false;
           this.showToast('Ride scheduled.');
           this.resetBooking();
           this.router.navigate(['/scheduled-rides']);
         },
         error: (err) => {
+          this.scheduling = false;
           this.statusMessage = err?.error?.message || 'Could not schedule ride. Please try again.';
         }
       });
