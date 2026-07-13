@@ -15,6 +15,18 @@
       <div id="map"></div>
     </div>
 
+    <!-- RECENTER BUTTON -->
+    <button class="recenter-fab" type="button" *ngIf="!locationDenied" (click)="recenter()" aria-label="Recenter map">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2" />
+        <circle cx="12" cy="12" r="1.6" fill="currentColor" />
+        <line x1="12" y1="1.5" x2="12" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <line x1="12" y1="19" x2="12" y2="22.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <line x1="1.5" y1="12" x2="5" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <line x1="19" y1="12" x2="22.5" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+
     <!-- HEADER: burger top-left, then logo -->
     <div class="header">
       <button class="menu-btn" (click)="toggleMenu()">☰</button>
@@ -268,6 +280,8 @@
     <!-- COMPLETED / RATING -->
     <div class="sheet" *ngIf="state === 'completed'">
       <div class="sheet-handle"></div>
+      <!-- Rating is optional — let the user close and book again without rating. -->
+      <button class="rating-close" type="button" (click)="skipRating()" aria-label="Close">✕</button>
       <div class="status-banner success">Ride Completed</div>
 
       <div class="fare-row">
@@ -275,7 +289,7 @@
         <span class="fare-amount">₹{{ (activeRide?.finalFare || activeRide?.estimatedFare) | number:'1.0-0' }}</span>
       </div>
 
-      <p class="rate-label">Rate your trip with {{ driverInfo?.fullName || 'driver' }}</p>
+      <p class="rate-label">Rate your trip with {{ driverInfo?.fullName || 'driver' }} <span class="rate-optional">(optional)</span></p>
       <div class="star-row">
         <span
           class="star-pick"
@@ -289,7 +303,8 @@
         placeholder="Leave feedback (optional)"
         [(ngModel)]="feedback"></textarea>
 
-      <button class="book-btn" [disabled]="!rating" (click)="submitRating()">Submit & Book Again</button>
+      <button class="book-btn" (click)="submitRating()">{{ rating ? 'Submit & Book Again' : 'Book Another Ride' }}</button>
+      <button class="skip-link" type="button" *ngIf="rating" (click)="skipRating()">Skip rating</button>
     </div>
 
     <!-- CANCELLED -->

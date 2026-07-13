@@ -471,13 +471,71 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   confirmLocations() {
     if (!this.pickup || !this.drop) return;
 
-    const bounds = new google.maps.LatLngBounds();
-    bounds.extend({ lat: this.pickup.lat, lng: this.pickup.lng });
-    bounds.extend({ lat: this.drop.lat, lng: this.drop.lng });
-    this.gmap.fitBounds(bounds, { top: 80, bottom: 360, left: 40, right: 40 });
+    // Only frame both points if BOTH are real coordinates. A 0,0 / uninitialised
+    // pickup or drop would stretch the bounds to "null island" and force the map to
+    // zoom all the way out to the whole country — the bug this guards against.
+    const pOk = this.validCoord(this.pickup.lat, this.pickup.lng);
+    const dOk = this.validCoord(this.drop.lat, this.drop.lng);
+    if (pOk && dOk) {
+      const bounds = new google.maps.LatLngBounds();
+      bounds.extend({ lat: this.pickup.lat, lng: this.pickup.lng });
+      bounds.extend({ lat: this.drop.lat, lng: this.drop.lng });
+      this.fitBoundsCapped(bounds, { top: 80, bottom: 360, left: 40, right: 40 });
+    } else if (pOk) {
+      this.gmap.setCenter({ lat: this.pickup.lat, lng: this.pickup.lng });
+      this.gmap.setZoom(environment.mapZoom);
+    }
 
     this.fetchVehicleOptions();
     this.state = 'selecting';
+  }
+
+  /**
+   * A lat/lng is only usable if it's a real number and not the (0,0) "null island"
+   * default. Extending map bounds to (0,0) is what made the map zoom out to India.
+   */
+  private validCoord(lat: any, lng: any): boolean {
+    const la = Number(lat), ln = Number(lng);
+    return Number.isFinite(la) && Number.isFinite(ln)
+      && !(la === 0 && ln === 0)
+      && la >= -90 && la <= 90 && ln >= -180 && ln <= 180;
+  }
+
+  /**
+   * fitBounds, but clamp the resulting zoom so the map never zooms out past a sane
+   * neighbourhood level even if the two points are far apart.
+   */
+  private fitBoundsCapped(bounds: google.maps.LatLngBounds, padding: google.maps.Padding, minZoom = 11) {
+    if (!this.gmap) return;
+    this.gmap.fitBounds(bounds, padding);
+    google.maps.event.addListenerOnce(this.gmap, 'idle', () => {
+      const z = this.gmap.getZoom();
+      if (z != null && z < minZoom) this.gmap.setZoom(minZoom);
+    });
+  }
+
+  /**
+   * Re-center the map on the user's current location at the default zoom. The User app
+   * doesn't track live device location, so read a fresh GPS fix; fall back to the
+   * pickup coordinate if GPS is unavailable.
+   */
+  async recenter() {
+    if (!this.gmap) return;
+    try {
+      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      if (this.validCoord(lat, lng)) {
+        this.gmap.setCenter({ lat, lng });
+        this.gmap.setZoom(environment.mapZoom);
+        return;
+      }
+    } catch {
+      // fall through to pickup fallback
+    }
+    if (this.pickup && this.validCoord(this.pickup.lat, this.pickup.lng)) {
+      this.gmap.setCenter({ lat: this.pickup.lat, lng: this.pickup.lng });
+      this.gmap.setZoom(environment.mapZoom);
+    }
   }
 
   editLocations() {
@@ -762,12 +820,25 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Finish the completed-ride flow. Rating is OPTIONAL: if the user picked stars we
+   * POST the rating, otherwise we just reset. Either way the booking screen returns so
+   * they can book again. Reset happens regardless of whether the rating POST succeeds,
+   * so a network hiccup never traps the user on the rating sheet.
+   */
   submitRating() {
-    if (!this.activeRide || !this.rating) return;
-    this.api.post(`ride/rate/${this.activeRide.rideId}`, {
-      rating: this.rating,
-      feedback: this.feedback
-    }).subscribe(() => this.resetBooking());
+    if (this.activeRide && this.rating) {
+      this.api.post(`ride/rate/${this.activeRide.rideId}`, {
+        rating: this.rating,
+        feedback: this.feedback
+      }).subscribe({ next: () => {}, error: () => {} });
+    }
+    this.resetBooking();
+  }
+
+  /** Dismiss the rating sheet without rating and return to booking. */
+  skipRating() {
+    this.resetBooking();
   }
 
   resetBooking() {

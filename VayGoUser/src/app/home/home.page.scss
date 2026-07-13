@@ -21,6 +21,30 @@ ion-content {
   z-index: 1;
 }
 
+/* Recenter button — floats on the right, above the bottom sheets. */
+.recenter-fab {
+  position: absolute;
+  right: 16px;
+  bottom: 46%;
+  z-index: 6;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: #ffffff;
+  color: #3b0a18; /* VayGo maroon */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  padding: 0;
+
+  &:active {
+    background: #f0f0f0;
+  }
+}
+
 :host ::ng-deep .drop-marker-pin {
   width: 16px;
   height: 16px;
@@ -844,6 +868,41 @@ ion-content {
   font-size: 13px;
   color: #555;
   margin-bottom: 6px;
+}
+
+.rate-optional {
+  color: #999;
+  font-size: 12px;
+}
+
+/* Close (X) button on the completed/rating sheet — rating is optional. */
+.rating-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #888;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
+  padding: 0;
+}
+
+/* Secondary "Skip rating" text link under the primary button. */
+.skip-link {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  border: none;
+  background: transparent;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px;
 }
 
 .star-row {
