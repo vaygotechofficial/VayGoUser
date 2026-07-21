@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  baseUrl: 'https://apps.vaygotech.com/api',
+  baseUrl: 'https://apps.vaygotech.com/ride/api',
   userType: 'USER',
   appVersion: '1.0.5',
   googleMapsApiKey: 'AIzaSyDLum8xBKx4Wp3Uetglx8qzE5MA-qmF_qA',
