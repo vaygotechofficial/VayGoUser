@@ -27,8 +27,13 @@ export class RegistrationPage {
       mobileNumber: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       email: ['', [Validators.email]],
       gender: ['', [Validators.required]],
-      referralCode: ['']
+      referralCode: [''],
+      acceptPrivacy: [false, [Validators.requiredTrue]]
     });
+  }
+
+  goToPrivacy() {
+    this.router.navigate(['/privacy']);
   }
 
   onSubmit() {
