@@ -1,5 +1,5 @@
 ion-content {
-  --background: linear-gradient(180deg, #3b0a18, #1a050b);
+  --background: linear-gradient(180deg, #490412, #1a050b);
 }
 
 .screen {
@@ -32,7 +32,7 @@ ion-content {
   border-radius: 50%;
   border: none;
   background: #ffffff;
-  color: #3b0a18; /* VayGo maroon */
+  color: #490412; /* VayGo maroon */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,7 +49,7 @@ ion-content {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #650015;
+  background: #490412;
   border: 3px solid #fff;
   box-shadow: 0 0 0 2px rgba(101, 0, 21,0.4);
 }
@@ -101,7 +101,7 @@ ion-content {
   top: 0; left: 0; bottom: 0;
   width: 76%;
   max-width: 300px;
-  background: linear-gradient(180deg, #3b0a18, #1a050b);
+  background: linear-gradient(180deg, #490412, #1a050b);
   z-index: 50;
   transform: translateX(-105%);
   transition: transform 0.28s ease;
@@ -165,7 +165,7 @@ ion-content {
   padding: 8px 2px;
   font-size: 13px;
   font-weight: 700;
-  color: #650015;
+  color: #490412;
   cursor: pointer;
 }
 .saved-arrow {
@@ -209,7 +209,7 @@ ion-content {
   border: 1px solid rgba(101, 0, 21, 0.3);
   border-radius: 12px;
   background: rgba(101, 0, 21, 0.06);
-  color: #650015;
+  color: #490412;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -228,7 +228,7 @@ ion-content {
   flex: 0 0 auto;
   background: rgba(101, 0, 21, 0.08);
   border: 1px solid rgba(101, 0, 21, 0.2);
-  color: #650015;
+  color: #490412;
   font-size: 12px;
   font-weight: 600;
   border-radius: 16px;
@@ -237,9 +237,9 @@ ion-content {
   cursor: pointer;
 }
 .saved-pill.active {
-  background: #650015;
+  background: #490412;
   color: #fff;
-  border-color: #650015;
+  border-color: #490412;
 }
 
 /* ── PROMO ── */
@@ -261,7 +261,7 @@ ion-content {
 
 .promo-apply {
   background: rgba(101, 0, 21,0.1);
-  color: #650015;
+  color: #490412;
   border: none;
   border-radius: 12px;
   padding: 0 16px;
@@ -339,7 +339,7 @@ ion-content {
   .fare-total {
     font-size: 18px;
     font-weight: 800;
-    color: #650015;
+    color: #490412;
   }
 }
 
@@ -436,7 +436,7 @@ ion-content {
   width: 100%;
   background: none;
   border: none;
-  color: #650015;
+  color: #490412;
   font-size: 12px;
   font-weight: 600;
   text-align: left;
@@ -454,7 +454,7 @@ ion-content {
   background: rgba(101, 0, 21, 0.08);
   border: 1px solid rgba(101, 0, 21, 0.25);
   border-radius: 999px;
-  color: #650015;
+  color: #490412;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -495,7 +495,7 @@ ion-content {
 .pickup-note-hl {
   font-size: 12.5px;
   font-weight: 600;
-  color: #650015;
+  color: #490412;
   background: #fff3cd;                 /* soft amber highlight */
   border: 1px solid #ffe08a;
   border-radius: 10px;
@@ -547,7 +547,7 @@ ion-content {
 }
 
 .pickup-dot { background: #4caf50; }
-.drop-dot { background: #650015; }
+.drop-dot { background: #490412; }
 
 .addr-text {
   font-size: 13px;
@@ -570,7 +570,7 @@ ion-content {
 .pulse-dot {
   width: 12px; height: 12px;
   border-radius: 50%;
-  background: #650015;
+  background: #490412;
   animation: pulse 1.2s infinite;
   flex-shrink: 0;
 }
@@ -592,7 +592,7 @@ ion-content {
 .category-label {
   font-size: 11px;
   font-weight: 700;
-  color: #650015;
+  color: #490412;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin-bottom: 3px;
@@ -630,7 +630,7 @@ ion-content {
 }
 
 .vehicle-card.selected {
-  border-color: #650015;
+  border-color: #490412;
   background: rgba(101, 0, 21,0.06);
 }
 
@@ -640,7 +640,7 @@ ion-content {
 
 .vehicle-card.unavailable.selected {
   opacity: 1;
-  border-color: #650015;
+  border-color: #490412;
   background: rgba(101, 0, 21,0.06);
 }
 
@@ -665,7 +665,7 @@ ion-content {
 .vehicle-fare {
   font-size: 13px;
   font-weight: 800;
-  color: #650015;
+  color: #490412;
   margin-top: 2px;
 }
 
@@ -684,7 +684,7 @@ ion-content {
 /* ── BUTTONS ── */
 .book-btn {
   width: 100%;
-  background: linear-gradient(135deg, #650015, #3b0a18);
+  background: linear-gradient(135deg, #490412, #490412);
   color: #fff;
   border: none;
   border-radius: 14px;
@@ -704,7 +704,7 @@ ion-content {
   width: 100%;
   background: none;
   border: none;
-  color: #650015;
+  color: #490412;
   font-size: 14px;
   font-weight: 600;
   padding: 10px 0 2px;
@@ -756,7 +756,7 @@ ion-content {
 .pulse-ring {
   position: absolute;
   inset: 0;
-  border: 3px solid #650015;
+  border: 3px solid #490412;
   border-radius: 50%;
   animation: pulseRing 1.4s infinite;
 }
@@ -783,7 +783,7 @@ ion-content {
 .status-banner {
   font-size: 13px;
   font-weight: 700;
-  color: #650015;
+  color: #490412;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   text-align: center;
@@ -804,7 +804,7 @@ ion-content {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #650015, #3b0a18);
+  background: linear-gradient(135deg, #490412, #490412);
   color: #fff;
   display: flex;
   align-items: center;
@@ -938,7 +938,7 @@ ion-content {
 
 .otp-box {
   background: #f9f2f4;
-  border: 2px dashed #650015;
+  border: 2px dashed #490412;
   border-radius: 14px;
   padding: 12px 16px;
   text-align: center;
@@ -957,7 +957,7 @@ ion-content {
   font-size: 34px;
   font-weight: 800;
   letter-spacing: 10px;
-  color: #650015;
+  color: #490412;
 }
 
 /* ── LOCATION GATE ── */
@@ -965,7 +965,7 @@ ion-content {
   position: absolute;
   inset: 0;
   z-index: 100;
-  background: linear-gradient(180deg, #3b0a18, #1a050b);
+  background: linear-gradient(180deg, #490412, #1a050b);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1001,7 +1001,7 @@ ion-content {
 }
 
 .location-gate-btn {
-  background: linear-gradient(135deg, #650015, #3b0a18);
+  background: linear-gradient(135deg, #490412, #490412);
   color: #fff;
   border: 2px solid rgba(101, 0, 21,0.6);
   border-radius: 14px;
@@ -1030,10 +1030,10 @@ ion-content {
   width: 100%;
   margin-top: 10px;
   padding: 11px;
-  border: 1px dashed #650015;
+  border: 1px dashed #490412;
   border-radius: 12px;
   background: #fff5f7;
-  color: #650015;
+  color: #490412;
   font-size: 14px;
   font-weight: 600;
 }
@@ -1074,5 +1074,5 @@ ion-content {
 }
 .drop-picker-confirm {
   flex: 2; padding: 14px; border-radius: 12px;
-  border: none; background: #650015; color: #fff; font-weight: 700; font-size: 15px;
+  border: none; background: #490412; color: #fff; font-weight: 700; font-size: 15px;
 }
