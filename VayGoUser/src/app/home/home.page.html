@@ -30,14 +30,19 @@
     <!-- HEADER: burger top-left, then logo -->
     <div class="header">
       <button class="menu-btn" (click)="toggleMenu()">☰</button>
-      <img src="assets/VayGoLogoWhite.png" class="header-logo" alt="VayGo" />
+      <img src="assets/brand/vaygo-ride-lockup-cropped.png" class="header-logo" alt="VayGo Ride" />
       <div class="header-spacer"></div>
+      <button type="button" class="ask-ai-pill" (click)="goTo('/ask-ai')" aria-label="Ask VayGoAI">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"></path></svg>
+        Ask VayGoAI
+      </button>
     </div>
 
     <!-- SLIDE-OUT MENU -->
     <div class="menu-overlay" *ngIf="menuOpen" (click)="toggleMenu()"></div>
     <div class="side-menu" [class.open]="menuOpen">
       <div class="side-menu-title">VayGo</div>
+      <button class="menu-item" (click)="goTo('/ask-ai')">✨ Ask VayGoAI</button>
       <button class="menu-item" (click)="goTo('/ride-history')">🧾 Ride History</button>
       <button class="menu-item" (click)="goTo('/scheduled-rides')">🗓️ Scheduled Rides</button>
       <button class="menu-item" (click)="goTo('/places')">📍 Saved Places</button>

@@ -81,12 +81,35 @@ ion-content {
 }
 
 .header-logo {
-  height: 34px;
-  object-fit: contain;
+  /* Cropped VayGo Ride lockup, 46px tall in the bar */
+  height: 46px;
+  width: auto;
+  display: block;
   pointer-events: none;
 }
 
 .header-spacer { flex: 1; }
+
+/* ── ASK VAYGOAI entry (gold pill) ── */
+.ask-ai-pill {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 19px;
+  border: 0;
+  background: #e3b24a;
+  color: #2a1016;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(26,5,11,0.25);
+}
 
 /* ── SIDE MENU ── */
 .menu-overlay {

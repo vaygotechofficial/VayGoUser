@@ -2,7 +2,7 @@ ion-content { --background: linear-gradient(180deg, #490412, #1a050b); }
 
 .page { min-height: 100%; padding-bottom: 24px; }
 .page-header { display: flex; align-items: center; gap: 12px; padding: 48px 18px 16px; }
-.header-logo { height: 30px; object-fit: contain; }
+.header-logo { height: 46px; width: auto; display: block; } /* cropped Ride lockup */
 .page-title { font-size: 18px; font-weight: 700; color: #fff; }
 .page-body { padding: 0 14px; }
 

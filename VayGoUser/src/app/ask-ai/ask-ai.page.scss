@@ -1,0 +1,113 @@
+ion-content { --background: #f4f5f7; }
+
+.ai-screen {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f4f5f7;
+  color: #1f2430;
+  font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+/* ── HEADER ── */
+.ai-head {
+  background: #490412;
+  color: #fff;
+  min-height: 76px;
+  box-sizing: border-box;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 10px 12px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+.ai-back {
+  width: 36px; height: 44px; border: 0; background: transparent; color: #fff;
+  display: flex; align-items: center; justify-content: center; flex: 0 0 auto; padding: 0;
+}
+.ai-logo { height: 46px; width: auto; display: block; flex: 0 0 auto; }
+.ai-titles { flex: 1 1 auto; min-width: 0; text-align: right; line-height: 1.25; }
+.ai-title { font-weight: 800; font-size: 15px; white-space: nowrap; }
+.ai-sub { font-size: 12px; color: #f3ccd2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-mark {
+  width: 38px; height: 38px; border-radius: 19px; background: #fff; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  img { width: 28px; height: 28px; object-fit: contain; }
+}
+
+/* ── BODY ── */
+.ai-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ai-empty { color: #64748b; font-size: 14px; p { margin: 0 0 12px; } }
+
+.ai-q {
+  align-self: flex-end; max-width: 82%;
+  background: #490412; color: #fff;
+  padding: 10px 14px; border-radius: 18px 18px 4px 18px; font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.ai-a {
+  align-self: flex-start; max-width: 94%; min-width: 0;
+  background: #fff; padding: 12px 14px; border-radius: 18px 18px 18px 4px; font-size: 15px;
+  box-shadow: 0 6px 18px rgba(26, 5, 11, 0.08);
+  display: flex; flex-direction: column; gap: 10px;
+  overflow-wrap: anywhere;
+}
+.ai-a-text { white-space: pre-line; line-height: 1.45; }
+/* Tables never overflow the bubble — they scroll sideways instead. */
+.ai-table-wrap { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+.ai-table {
+  border-collapse: collapse; font-size: 12px; width: 100%;
+  th { background: #f5f6f8; color: #475569; text-align: left; padding: 6px 8px; font-weight: 600; white-space: nowrap; }
+  td { padding: 6px 8px; border-top: 1px solid #f1f5f9; overflow-wrap: normal; }
+}
+
+.ai-chips {
+  align-self: flex-start; max-width: 96%;
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: -2px;
+  button {
+    height: 40px; padding: 0 14px; border-radius: 20px;
+    border: 1.5px solid #490412; background: #fff; color: #490412;
+    font-size: 14px; font-weight: 600; font-family: inherit;
+    &:disabled { opacity: 0.6; }
+  }
+}
+
+.ai-typing {
+  align-self: flex-start; background: #fff; border-radius: 18px 18px 18px 4px; padding: 14px 16px;
+  box-shadow: 0 6px 18px rgba(26, 5, 11, 0.08); display: flex; gap: 5px;
+  span {
+    width: 7px; height: 7px; border-radius: 50%; background: #490412; opacity: 0.35;
+    animation: ai-dot 1s infinite ease-in-out;
+    &:nth-child(2) { animation-delay: 0.15s; }
+    &:nth-child(3) { animation-delay: 0.3s; }
+  }
+}
+@keyframes ai-dot { 0%, 80%, 100% { opacity: 0.35; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+
+/* ── FOOTER ── */
+.ai-foot {
+  flex: 0 0 auto;
+  display: flex; gap: 10px; align-items: center;
+  padding: 12px 14px calc(22px + env(safe-area-inset-bottom, 0px));
+  background: #fff; border-top: 1px solid #e6e8ee;
+  input {
+    flex: 1 1 auto; min-width: 0; height: 48px; padding: 0 16px;
+    border: 1px solid #d7dbe3; border-radius: 24px; background: #fff; color: #1f2430;
+    font-size: 15px; font-family: inherit; outline: none;
+    &:focus { border-color: #490412; }
+  }
+}
+.ai-send {
+  width: 48px; height: 48px; border-radius: 24px; border: 0; flex: 0 0 auto;
+  background: #490412; color: #fff; display: flex; align-items: center; justify-content: center;
+  &:disabled { opacity: 0.55; }
+}

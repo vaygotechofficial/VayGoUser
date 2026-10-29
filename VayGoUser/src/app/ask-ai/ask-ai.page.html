@@ -1,0 +1,58 @@
+<ion-content [scrollY]="false">
+  <div class="ai-screen">
+
+    <!-- HEADER -->
+    <div class="ai-head">
+      <button class="ai-back" type="button" (click)="back()" aria-label="Back">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+      <img class="ai-logo" src="assets/brand/vaygo-ride-lockup-cropped.png" alt="VayGo Ride" />
+      <div class="ai-titles">
+        <div class="ai-title">Ask VayGoAI</div>
+        <div class="ai-sub">{{ subtitle }}</div>
+      </div>
+      <div class="ai-mark"><img src="assets/brand/mark.png" alt="" /></div>
+    </div>
+
+    <!-- CONVERSATION -->
+    <div class="ai-body" #scrollBody>
+      <div class="ai-empty" *ngIf="!messages.length">
+        <p>Ask a question in your own words, or tap one to start.</p>
+        <div class="ai-chips">
+          <button type="button" *ngFor="let s of starters" (click)="ask(s)">{{ s }}</button>
+        </div>
+      </div>
+
+      <ng-container *ngFor="let m of messages">
+        <div *ngIf="m.role === 'q'" class="ai-q">{{ m.text }}</div>
+        <ng-container *ngIf="m.role === 'a'">
+          <div class="ai-a">
+            <div class="ai-a-text">{{ m.text }}</div>
+            <div class="ai-table-wrap" *ngIf="m.table">
+              <table class="ai-table">
+                <thead><tr><th *ngFor="let c of m.table.columns">{{ c }}</th></tr></thead>
+                <tbody><tr *ngFor="let r of m.table.rows"><td *ngFor="let cell of r">{{ cell }}</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="ai-chips" *ngIf="m.followUps?.length">
+            <button type="button" *ngFor="let f of m.followUps" (click)="ask(f)" [disabled]="busy">{{ f }}</button>
+          </div>
+        </ng-container>
+      </ng-container>
+
+      <div class="ai-typing" *ngIf="busy" aria-label="VayGoAI is typing"><span></span><span></span><span></span></div>
+    </div>
+
+    <!-- ASK -->
+    <form class="ai-foot" (ngSubmit)="submit()">
+      <input name="question" [(ngModel)]="question" [placeholder]="placeholder" autocomplete="off"
+             enterkeyhint="send" aria-label="Your question" />
+      <button type="submit" class="ai-send" [disabled]="busy || !question.trim()" aria-label="Send">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </button>
+    </form>
+  </div>
+</ion-content>

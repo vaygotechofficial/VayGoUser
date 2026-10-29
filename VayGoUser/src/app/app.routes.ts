@@ -43,6 +43,12 @@ export const routes: Routes = [
     loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
   },
   {
+    // Ask VayGoAI — questions about your own rides (answers from the VayGo AI service)
+    path: 'ask-ai',
+    canActivate: [authGuard],
+    loadComponent: () => import('./ask-ai/ask-ai.page').then(m => m.AskAiPage)
+  },
+  {
     path: 'ride-history',
     canActivate: [authGuard],
     loadComponent: () => import('./ride-history/ride-history.page').then((m) => m.RideHistoryPage),
